@@ -15,7 +15,7 @@
 
     var scriptTimeout = null;
 
-    var currentLoading = undefined;
+    var currentLoading;
 
     /* find the id of a comment */
     function getId(e, old) {
@@ -23,7 +23,7 @@
         try {
             if (!old) {
                 var comment = e.parentElement.parentElement.parentElement.parentElement.querySelector(".Comment");
-                id = Array.from(comment.classList).filter(function (x) { return x.indexOf("_") > -1 })[0];
+                id = Array.from(comment.classList).filter(function (x) { return x.indexOf("_") > -1; })[0];
             }
             else {
                 id = e.parentElement.parentElement.parentElement.id.split("_").slice(1).join("_");
@@ -65,16 +65,16 @@
         /* click event */
         l.addEventListener("click", function () {
             /* allow only 1 request at a time */
-            if ((typeof (currentLoading) != "undefined") && (currentLoading != null)) { return; }
+            if ((typeof (currentLoading) != "undefined") && (currentLoading !== null)) { return; }
             /* collect info on selected comment */
             var id = getId(this, isOldReddit);
             var url = "https://api.pushshift.io/reddit/search/comment/?ids=" + id + "&sort=desc&sort_type=created_utc";
             /* set loading status */
             currentLoading = this;
-            this.innerHTML = "loading..."
+            this.innerHTML = "loading...";
             /* fetch original comment from pushshift api */
             fetch(url)
-                .then(function (res) { return res.json() })
+                .then(function (res) { return res.json(); })
                 .then(function (out) {
                     /* locate the comment that was being loaded */
                     var loading = currentLoading;
@@ -99,15 +99,15 @@
                         /* remove loading status from comment */
                         loading.innerHTML = "";
                     }
-                   else if (out && out.data && (out.data.length == 0)) {
+                   else if (out && out.data && (out.data.length === 0)) {
                         loading.innerHTML = "comment not found";
                     }
                     else {
                         loading.innerHTML = "fetch failed";
                     }
                 })
-                .catch(function(err) { throw err });
-        }, false)
+                .catch(function(err) { throw err; });
+        }, false);
     }
 
     /* locate comments and call function to add links to each */
@@ -121,7 +121,7 @@
         /* Redesign */
         if (!isOldReddit) {
             editedComments = Array.from(document.querySelectorAll(".Comment div span")).filter(function (x, y, z) {
-                return x.parentElement.querySelector("a.showOriginal") == null &&
+                return x.parentElement.querySelector("a.showOriginal") === null &&
                     x.innerText.substr(0, 6) == "edited";
             });
         }
