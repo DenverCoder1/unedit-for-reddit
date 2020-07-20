@@ -10,11 +10,11 @@ This script makes use of the [Pushshift Reddit API](https://github.com/pushshift
 
 ----
 
-###Changes in 2.0
+### Changes in 2.0
 
 * Original comment is converted from markdown to HTML to show custom formatting.
 * Unedit now supports self-text submissions (Old Reddit only)
 
-###Version 1.0
+### Version 1.0
 
 * Show original version of edited Reddit comments (Redesign and Old Reddit)
