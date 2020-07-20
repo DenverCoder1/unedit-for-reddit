@@ -1,11 +1,12 @@
 // ==UserScript==
-// @name         Unedit for Reddit
+// @name         Unedit for Reddit 2.0
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  Creates the option next to edited Reddit comments to show the original comment from before it was edited
 // @author       u/eyl327
 // @match        http*://*.reddit.com/r/*
 // @grant        none
+// @require      https://cdn.jsdelivr.net/npm/showdown@1.9.0/dist/showdown.min.js
 // ==/UserScript==
 
 (function () {
@@ -17,6 +18,8 @@
 
     var currentLoading;
 
+    var mdConverter = new showdown.Converter();
+
     /* find the id of a comment */
     function getId(e, old) {
         var id = "";
@@ -26,7 +29,15 @@
                 id = Array.from(comment.classList).filter(function (x) { return x.indexOf("_") > -1; })[0];
             }
             else {
-                id = e.parentElement.parentElement.parentElement.id.split("_").slice(1).join("_");
+                id = e.parentElement.parentElement.parentElement.id;
+                /* old reddit submission */
+                if (id === "" && isInSubmission(e)) {
+                    id = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//)[1];
+                }
+                /* old reddit comment */
+                else {
+                    id = id.split("_").slice(1).join("_");
+                }
             }
         }
         catch (error) {
@@ -52,6 +63,10 @@
         return el;
     }
 
+    function isInSubmission(e) {
+        return e.parentElement.parentElement.className == "top-matter";
+    }
+
     /* create links and define click event */
     function createLink(x) {
         /* create link */
@@ -68,7 +83,13 @@
             if ((typeof (currentLoading) != "undefined") && (currentLoading !== null)) { return; }
             /* collect info on selected comment */
             var id = getId(this, isOldReddit);
-            var url = "https://api.pushshift.io/reddit/search/comment/?ids=" + id + "&sort=desc&sort_type=created_utc";
+            var url = "";
+            if (!isInSubmission(this)) {
+                url = "https://api.pushshift.io/reddit/search/comment/?ids=" + id + "&sort=desc&sort_type=created_utc";
+            }
+            else {
+                url = "https://api.pushshift.io/reddit/search/submission/?ids=" + id + "&sort=desc&sort_type=created_utc";
+            }
             /* set loading status */
             currentLoading = this;
             this.innerHTML = "loading...";
@@ -87,10 +108,9 @@
                     if (commentBodyElement && out && out.data && (out.data.length > 0) && out.data[0].body) {
                         /* create new paragraph containing the body of the original comment */
                         var origBody = document.createElement("p");
-                        origBody.innerText = "\nOriginal comment:\n" + out.data[0].body;
+                        origBody.innerText = mdConverter.makeHtml("\n\nOriginal comment:\n" + out.data[0].body);
                         origBody.className = x.className;
                         origBody.style.opacity = 0.96;
-                        origBody.style.fontStyle = "italic";
                         origBody.style.fontSize = "94%";
                         origBody.style.background = "#ffed4c5c";
                         origBody.style.paddingBottom = "16px";
@@ -99,11 +119,28 @@
                         /* remove loading status from comment */
                         loading.innerHTML = "";
                     }
-                   else if (out && out.data && (out.data.length === 0)) {
-                        loading.innerHTML = "comment not found";
+                    /* check if result has selftext instead of body (it is a submission post) */
+                    else if (commentBodyElement && out && out.data && (out.data.length > 0) && out.data[0].selftext) {
+                        /* create new paragraph containing the selftext of the original submission */
+                        var origSelfText = document.createElement("p");
+                        origSelfText.innerHTML = mdConverter.makeHtml("\n\nOriginal post:\n" + out.data[0].selftext);
+                        origSelfText.className = x.className;
+                        origSelfText.style.opacity = 0.96;
+                        origSelfText.style.fontSize = "94%";
+                        origSelfText.style.background = "#ffed4c5c";
+                        origSelfText.style.paddingBottom = "16px";
+                        origSelfText.style.paddingLeft = "16px";
+                        commentBodyElement.appendChild(origSelfText);
+                        /* remove loading status from submission */
+                        loading.innerHTML = "";
+                    }
+                    else if (out && out.data && (out.data.length === 0)) {
+                        loading.innerHTML = "not found";
+                        console.log(out);
                     }
                     else {
                         loading.innerHTML = "fetch failed";
+                        console.log(out);
                     }
                 })
                 .catch(function(err) { throw err; });
