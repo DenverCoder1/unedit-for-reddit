@@ -2,7 +2,7 @@
 // @name         Unedit for Reddit
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  Creates a link next to edited Reddit comments to show the original comment from before the edit
+// @description  Creates the option next to edited Reddit comments to show the original comment from before it was edited
 // @author       u/eyl327
 // @match        http*://*.reddit.com/r/*
 // @grant        none
