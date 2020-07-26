@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Unedit for Reddit 2.0
+// @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  Creates the option next to edited Reddit comments to show the original comment from before it was edited
+// @version      3.2
+// @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       u/eyl327
 // @match        http*://*.reddit.com/r/*
 // @grant        none
@@ -12,12 +12,16 @@
 (function () {
     'use strict';
 
+    /* check if website url is an old reddit url */
     var isOldReddit = /old\.reddit/.test(window.location.href);
 
+    /* timeout to check for new edited comments on page */
     var scriptTimeout = null;
 
+    /* variable to store the element that is currently requesting content */
     var currentLoading;
 
+    /* initialize showdown markdown converter */
     var mdConverter = new showdown.Converter();
 
     /* find the id of a comment */
@@ -38,6 +42,9 @@
                 else {
                     id = id.split("_").slice(1).join("_");
                 }
+                if (id === "") {
+                    id = e.parentElement.parentElement.getElementsByClassName("reportform")[0].className.replace(/.*t1/, 't1');
+                }
             }
         }
         catch (error) {
@@ -46,15 +53,21 @@
         return id;
     }
 
-    /* get the last paragraph of the comment body */
+    /* get the container of the comment body */
     function getCommentBodyElement(id, old) {
         var el = null;
         try {
+            /* redesign */
             if (!old) {
-                el = Array.from(document.getElementById(id).getElementsByTagName("p")).slice(-1)[0];
+                el = document.getElementById(id).getElementsByClassName("RichTextJSON-root")[0];
+                if (!el) { el = document.getElementById(id); }
             }
+            /* old reddit */
             else {
-                el = Array.from(document.querySelector("form[id*="+id+"] div.md").getElementsByTagName("p")).slice(-1)[0];
+                if (document.querySelector("form[id*=" + id + "] div.md")) {
+                    el = document.querySelector("form[id*=" + id + "] div.md");
+                }
+                if (!el) { el = document.querySelector('.report-' + id).parentElement.parentElement; }
             }
         }
         catch (error) {
@@ -63,27 +76,64 @@
         return el;
     }
 
+    /* check if surrounding elements imply element is in a selftext submission */
     function isInSubmission(e) {
         return e.parentElement.parentElement.className == "top-matter";
     }
 
+    /* check that elements bounds are within the windows bounds */
+    function isInViewport(e) {
+        var rect = e.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    }
+
+    /* create new paragraph containing the body of the original comment/post */
+    function showOriginalComment(x, commentBodyElement, postType, body) {
+        /* create paragraph element */
+        var origBody = document.createElement("p");
+        origBody.className = "og";
+        /* set text */
+        origBody.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + body);
+        /* paragraph styling */
+        origBody.style.opacity = 0.96;
+        origBody.style.fontSize = "14px";
+        origBody.style.background = "#ffed4c5c";
+        origBody.style.padding = "16px";
+        origBody.style.color = "inherit";
+        origBody.style.lineHeight = "20px";
+        commentBodyElement.appendChild(origBody);
+        /* scroll into view */
+        setTimeout(function () {
+            if (!isInViewport(origBody)) {
+                origBody.scrollIntoView({ behavior: "smooth" });
+            }
+        }, 500);
+    }
+
     /* create links and define click event */
     function createLink(x) {
-        /* create link */
+        /* create link to "Show orginal" */
         var l = document.createElement("a");
         l.innerText = "Show original";
         l.className = x.className + " showOriginal";
         l.style.textDecoration = "underline";
         l.style.cursor = "pointer";
+        l.style.marginLeft = "6px";
         x.parentElement.appendChild(l);
         x.className += " found";
         /* click event */
         l.addEventListener("click", function () {
             /* allow only 1 request at a time */
             if ((typeof (currentLoading) != "undefined") && (currentLoading !== null)) { return; }
-            /* collect info on selected comment */
+            /* find id of selected comment */
             var id = getId(this, isOldReddit);
             var url = "";
+            /* create url for getting comment/post from pushshift api */
             if (!isInSubmission(this)) {
                 url = "https://api.pushshift.io/reddit/search/comment/?ids=" + id + "&sort=desc&sort_type=created_utc";
             }
@@ -107,43 +157,31 @@
                     /* check that comment was fetched and body element exists */
                     if (commentBodyElement && out && out.data && (out.data.length > 0) && out.data[0].body) {
                         /* create new paragraph containing the body of the original comment */
-                        var origBody = document.createElement("p");
-                        origBody.innerText = mdConverter.makeHtml("\n\nOriginal comment:\n" + out.data[0].body);
-                        origBody.className = x.className;
-                        origBody.style.opacity = 0.96;
-                        origBody.style.fontSize = "94%";
-                        origBody.style.background = "#ffed4c5c";
-                        origBody.style.paddingBottom = "16px";
-                        origBody.style.paddingLeft = "16px";
-                        commentBodyElement.appendChild(origBody);
+                        showOriginalComment(x, commentBodyElement, "comment", out.data[0].body);
                         /* remove loading status from comment */
                         loading.innerHTML = "";
                     }
                     /* check if result has selftext instead of body (it is a submission post) */
                     else if (commentBodyElement && out && out.data && (out.data.length > 0) && out.data[0].selftext) {
                         /* create new paragraph containing the selftext of the original submission */
-                        var origSelfText = document.createElement("p");
-                        origSelfText.innerHTML = mdConverter.makeHtml("\n\nOriginal post:\n" + out.data[0].selftext);
-                        origSelfText.className = x.className;
-                        origSelfText.style.opacity = 0.96;
-                        origSelfText.style.fontSize = "94%";
-                        origSelfText.style.background = "#ffed4c5c";
-                        origSelfText.style.paddingBottom = "16px";
-                        origSelfText.style.paddingLeft = "16px";
-                        commentBodyElement.appendChild(origSelfText);
-                        /* remove loading status from submission */
+                        showOriginalComment(x, commentBodyElement, "post", out.data[0].selftext);
+                        /* remove loading status from post */
                         loading.innerHTML = "";
                     }
+                    /* data was not returned or returned empty */
                     else if (out && out.data && (out.data.length === 0)) {
                         loading.innerHTML = "not found";
+                        console.log("id: " + id);
                         console.log(out);
                     }
+                    /* other issue occurred with displaying comment */
                     else {
                         loading.innerHTML = "fetch failed";
+                        console.log("id: " + id);
                         console.log(out);
                     }
                 })
-                .catch(function(err) { throw err; });
+                .catch(function (err) { throw err; });
         }, false);
     }
 
@@ -157,16 +195,25 @@
         var editedComments = [];
         /* Redesign */
         if (!isOldReddit) {
+            /* fix styling of created paragraphs in new reddit */
+            document.head.insertAdjacentHTML("beforeend", "<style>p.og pre { font-family: monospace; background: #ffffff50; padding: 6px; margin: 6px 0; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>");
+            /* edited comments */
             editedComments = Array.from(document.querySelectorAll(".Comment div span")).filter(function (x, y, z) {
                 return x.parentElement.querySelector("a.showOriginal") === null &&
                     x.innerText.substr(0, 6) == "edited";
             });
+            /* include deleted comments */
+            editedComments = editedComments.concat(Array.from(document.querySelectorAll(".Comment div span")).filter(function (x, y, z) {
+                return x.parentElement.querySelector("a.showOriginal") === null &&
+                    x.innerText.substr(0, 15) == "Comment deleted";
+            }));
         }
         /* Old Reddit */
         else {
+            /* edited comments and submissions */
             editedComments = Array.from(document.querySelectorAll("time")).filter(function (x, y, z) {
                 return Array.from(x.classList).indexOf("found") < 0 &&
-                    x.title.substr(0,11) == "last edited";
+                    x.title.substr(0, 11) == "last edited";
             });
         }
         /* create links */
@@ -174,11 +221,11 @@
     }
 
     /* check for new comments when you scroll */
-    window.onscroll = function () {
+    window.addEventListener('scroll', function () {
         if (!scriptTimeout) {
             scriptTimeout = setTimeout(findEditedComments, 1000);
         }
-    };
+    }, true);
 
     findEditedComments();
 })();
