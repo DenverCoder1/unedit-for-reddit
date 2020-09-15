@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.2
+// @version      3.4
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
-// @author       u/eyl327
-// @match        http*://*.reddit.com/r/*
+// @author       u/DenverCoder1
+// @match        *://*reddit.com/*
 // @grant        none
 // @require      https://cdn.jsdelivr.net/npm/showdown@1.9.0/dist/showdown.min.js
 // ==/UserScript==
@@ -30,6 +30,9 @@
         try {
             if (!old) {
                 var comment = e.parentElement.parentElement.parentElement.parentElement.querySelector(".Comment");
+                if (!comment) {
+                  comment = e.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement
+                }
                 id = Array.from(comment.classList).filter(function (x) { return x.indexOf("_") > -1; })[0];
             }
             else {
@@ -43,7 +46,7 @@
                     id = id.split("_").slice(1).join("_");
                 }
                 if (id === "") {
-                    id = e.parentElement.parentElement.getElementsByClassName("reportform")[0].className.replace(/.*t1/, 't1');
+                    id = e.parentElement.parentElement.getElementsByClassName("reportform")[0].className.replace(/.*t1/,'t1');
                 }
             }
         }
@@ -59,15 +62,27 @@
         try {
             /* redesign */
             if (!old) {
-                el = document.getElementById(id).getElementsByClassName("RichTextJSON-root")[0];
-                if (!el) { el = document.getElementById(id); }
+                var baseEl = document.getElementById(id);
+                if (baseEl) {
+                  if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0)
+                    el = baseEl.getElementsByClassName("RichTextJSON-root")[0];
+                  else
+                    el = baseEl;
+                }
+                baseEl = document.querySelector(".Comment."+id);
+                if (!el && baseEl) {
+                  if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0)
+                    el = baseEl.getElementsByClassName("RichTextJSON-root")[0];
+                  else
+                    el = baseEl.firstElementChild.lastElementChild;
+                }
             }
             /* old reddit */
             else {
-                if (document.querySelector("form[id*=" + id + "] div.md")) {
-                    el = document.querySelector("form[id*=" + id + "] div.md");
+                if (document.querySelector("form[id*="+id+"] div.md")) {
+                    el = document.querySelector("form[id*="+id+"] div.md");
                 }
-                if (!el) { el = document.querySelector('.report-' + id).parentElement.parentElement; }
+                if (!el) { el = document.querySelector('.report-'+id).parentElement.parentElement; }
             }
         }
         catch (error) {
@@ -98,7 +113,7 @@
         var origBody = document.createElement("p");
         origBody.className = "og";
         /* set text */
-        origBody.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + body);
+        origBody.innerHTML = mdConverter.makeHtml("\n\n### Original "+postType+":\n\n" + body);
         /* paragraph styling */
         origBody.style.opacity = 0.96;
         origBody.style.fontSize = "14px";
@@ -108,9 +123,9 @@
         origBody.style.lineHeight = "20px";
         commentBodyElement.appendChild(origBody);
         /* scroll into view */
-        setTimeout(function () {
+        setTimeout(function(){
             if (!isInViewport(origBody)) {
-                origBody.scrollIntoView({ behavior: "smooth" });
+                origBody.scrollIntoView({behavior: "smooth"});
             }
         }, 500);
     }
@@ -171,17 +186,17 @@
                     /* data was not returned or returned empty */
                     else if (out && out.data && (out.data.length === 0)) {
                         loading.innerHTML = "not found";
-                        console.log("id: " + id);
+                        console.log("id: "+id);
                         console.log(out);
                     }
                     /* other issue occurred with displaying comment */
                     else {
                         loading.innerHTML = "fetch failed";
-                        console.log("id: " + id);
+                        console.log("id: "+id);
                         console.log(out);
                     }
                 })
-                .catch(function (err) { throw err; });
+                .catch(function(err) { throw err; });
         }, false);
     }
 
@@ -213,7 +228,7 @@
             /* edited comments and submissions */
             editedComments = Array.from(document.querySelectorAll("time")).filter(function (x, y, z) {
                 return Array.from(x.classList).indexOf("found") < 0 &&
-                    x.title.substr(0, 11) == "last edited";
+                    x.title.substr(0,11) == "last edited";
             });
         }
         /* create links */
@@ -221,7 +236,7 @@
     }
 
     /* check for new comments when you scroll */
-    window.addEventListener('scroll', function () {
+    window.addEventListener('scroll', function() {
         if (!scriptTimeout) {
             scriptTimeout = setTimeout(findEditedComments, 1000);
         }
