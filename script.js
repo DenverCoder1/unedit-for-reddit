@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.4
+// @version      3.5
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       u/DenverCoder1
 // @match        *://*reddit.com/*
@@ -12,8 +12,8 @@
 (function () {
     'use strict';
 
-    /* check if website url is an old reddit url */
-    var isOldReddit = /old\.reddit/.test(window.location.href);
+    /* check if website is an old reddit url or has an old reddit image header */
+    var isOldReddit = /old\.reddit/.test(window.location.href) || !!document.querySelector("#header-img");
 
     /* timeout to check for new edited comments on page */
     var scriptTimeout = null;
