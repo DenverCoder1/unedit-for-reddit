@@ -14,6 +14,18 @@ This script makes use of the [Pushshift Reddit API](https://github.com/pushshift
 
 ----
 
+### Changes in 3.5
+
+* Added compatibility with Old Reddit links without "old.reddit" in the URL
+
+### Changes in 3.4
+
+* Fixed @match for more compatibility
+
+### Changes in 3.3
+
+* Added support for profile pages (Redesign)
+
 ### Changes in 3.2
 
 * Works more accurately in post previews (Redesign feature where the post is shown in a popup when clicked from post list)
