@@ -1,5 +1,10 @@
 # Unedit and Undelete for Reddit
 
+<p align="left">
+  <a href="https://discord.gg/fPrdqh3Zfu" alt="Dev Pro Tips Discussion & Support Server">
+    <img src="https://img.shields.io/discord/819650821314052106?color=7289DA&logo=discord&logoColor=white&style=for-the-badge"/></a>
+</p>
+
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed. The unedited comment is displayed inline. This script is compatible with the Redesign and Old Reddit.
 
 This script makes use of the [Pushshift Reddit API](https://github.com/pushshift/api).
