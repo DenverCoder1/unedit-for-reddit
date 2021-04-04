@@ -22,6 +22,7 @@ This script makes use of the [Pushshift Reddit API](https://github.com/pushshift
 ### Changes in 3.5
 
 * Added compatibility with Old Reddit links without "old.reddit" in the URL
+* Added additional @includes for more compatibility
 
 ### Changes in 3.4
 
