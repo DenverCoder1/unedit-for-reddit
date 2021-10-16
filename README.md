@@ -9,7 +9,13 @@ Creates a link next to edited and deleted Reddit comments and submissions to sho
 
 This script makes use of the [Pushshift Reddit API](https://github.com/pushshift/api).
 
-[Download this userscript on Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit).
+### Installation
+
+This script can be installed to most userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), and others using the green button on the [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit) page.
+
+[![Download this userscript on Greasy Fork](https://custom-icon-badges.herokuapp.com/badge/-Install%20on%20Greasy%20Fork-000?style=for-the-badge&logo=greasyforkpng)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
+
+Alternatively, you may copy the contents of `script.js` into a new script using any userscript browser extension.
 
 ### Example usage:
 
@@ -18,6 +24,11 @@ This script makes use of the [Pushshift Reddit API](https://github.com/pushshift
 ![Shown](https://i.imgur.com/kPlXd6w.png)
 
 ----
+
+### Changes in 3.6
+
+* Check an second source for comments so more recent comments are less likely to be "not found"
+* Fixes to getting comment ids in Reddit redesign
 
 ### Changes in 3.5
 
