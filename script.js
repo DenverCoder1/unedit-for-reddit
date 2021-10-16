@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.5.1
+// @version      3.6.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       u/DenverCoder1
 // @match        *://*reddit.com/*
@@ -31,9 +31,9 @@
         var id = "";
         try {
             if (!old) {
-                var comment = e.parentElement.parentElement.parentElement.parentElement.querySelector(".Comment");
+                var comment = e?.parentElement?.parentElement?.parentElement?.parentElement?.querySelector(".Comment");
                 if (!comment) {
-                  comment = e.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement
+                  comment = e?.parentElement?.parentElement?.parentElement?.parentElement;
                 }
                 id = Array.from(comment.classList).filter(function (x) { return x.indexOf("_") > -1; })[0];
             }
@@ -144,61 +144,73 @@
         x.parentElement.appendChild(l);
         x.className += " found";
         /* click event */
-        l.addEventListener("click", function () {
+        l.addEventListener("click", async function () {
             /* allow only 1 request at a time */
             if ((typeof (currentLoading) != "undefined") && (currentLoading !== null)) { return; }
             /* find id of selected comment */
             var id = getId(this, isOldReddit);
-            var url = "";
-            /* create url for getting comment/post from pushshift api */
-            if (!isInSubmission(this)) {
-                url = "https://api.pushshift.io/reddit/search/comment/?ids=" + id + "&sort=desc&sort_type=created_utc";
-            }
-            else {
-                url = "https://api.pushshift.io/reddit/search/submission/?ids=" + id + "&sort=desc&sort_type=created_utc";
-            }
-            /* set loading status */
+						/* create url for getting comment/post from pushshift api */
+            var idURL = isInSubmission(this)
+												? "https://api.pushshift.io/reddit/search/submission/?ids=" + id + "&sort=desc&sort_type=created_utc&fields=selftext,author,id"
+												: "https://api.pushshift.io/reddit/search/comment/?ids=" + id + "&sort=desc&sort_type=created_utc&fields=body,author,id,link_id";
+						/* create url for getting author comments/posts from pushshift api */
+						var author = this.parentElement.querySelector("a[href*=user]")?.innerText;
+						var authorURL = isInSubmission(this)
+												? "https://api.pushshift.io/reddit/search/submission/?author=" + author + "&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id"
+												: "https://api.pushshift.io/reddit/search/comment/?author=" + author + "&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id";
+					
+						/* set loading status */
             currentLoading = this;
             this.innerHTML = "loading...";
-            /* fetch original comment from pushshift api */
-            fetch(url)
-                .then(function (res) { return res.json(); })
-                .then(function (out) {
-                    /* locate the comment that was being loaded */
-                    var loading = currentLoading;
-                    /* reset status */
-                    currentLoading = null;
-                    /* locate comment body */
-                    var id = getId(loading, isOldReddit);
-                    var commentBodyElement = getCommentBodyElement(id, isOldReddit);
-                    /* check that comment was fetched and body element exists */
-                    if (commentBodyElement && out && out.data && (out.data.length > 0) && out.data[0].body) {
-                        /* create new paragraph containing the body of the original comment */
-                        showOriginalComment(x, commentBodyElement, "comment", out.data[0].body);
-                        /* remove loading status from comment */
-                        loading.innerHTML = "";
-                    }
-                    /* check if result has selftext instead of body (it is a submission post) */
-                    else if (commentBodyElement && out && out.data && (out.data.length > 0) && out.data[0].selftext) {
-                        /* create new paragraph containing the selftext of the original submission */
-                        showOriginalComment(x, commentBodyElement, "post", out.data[0].selftext);
-                        /* remove loading status from post */
-                        loading.innerHTML = "";
-                    }
-                    /* data was not returned or returned empty */
-                    else if (out && out.data && (out.data.length === 0)) {
-                        loading.innerHTML = "not found";
-                        console.log("id: "+id);
-                        console.log(out);
-                    }
-                    /* other issue occurred with displaying comment */
-                    else {
-                        loading.innerHTML = "fetch failed";
-                        console.log("id: "+id);
-                        console.log(out);
-                    }
-                })
-                .catch(function(err) { throw err; });
+						
+						/* request from pushshift api */
+						await Promise.all([
+							fetch(idURL).then((resp) => resp.json()),
+							fetch(authorURL).then((resp) => resp.json()),
+						])
+							.then((responses) => {
+									responses.forEach((out) => {
+										/* locate the comment that was being loaded */
+										var loading = currentLoading;
+										// exit if already found
+										if (loading.innerHTML === "") { return; }
+										/* locate comment body */
+										var id = getId(loading, isOldReddit);
+										var commentBodyElement = getCommentBodyElement(id, isOldReddit);
+										var post = out?.data?.find((post) => post?.id === id?.split("_").pop());
+										console.log({author, id, post});
+										/* check that comment was fetched and body element exists */
+										if (commentBodyElement && post?.body) {
+												/* create new paragraph containing the body of the original comment */
+												showOriginalComment(x, commentBodyElement, "comment", post.body);
+												/* remove loading status from comment */
+												loading.innerHTML = "";
+										}
+										/* check if result has selftext instead of body (it is a submission post) */
+										else if (commentBodyElement && post?.selftext) {
+												/* create new paragraph containing the selftext of the original submission */
+												showOriginalComment(x, commentBodyElement, "post", post.selftext);
+												/* remove loading status from post */
+												loading.innerHTML = "";
+										}
+										/* data was not returned or returned empty */
+										else if (out?.data?.length === 0) {
+												loading.innerHTML = "not found";
+												console.log("id: "+id);
+												console.log(out);
+										}
+										/* other issue occurred with displaying comment */
+										else {
+												loading.innerHTML = "fetch failed";
+												console.log("id: "+id);
+												console.log(out);
+										}
+								});
+							})
+							.catch(function(err) { throw err; });
+					
+						/* reset status */
+          	currentLoading = null;
         }, false);
     }
 
