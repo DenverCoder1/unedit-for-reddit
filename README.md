@@ -21,7 +21,7 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 
 ## How to use
 
-![how to use](https://user-images.githubusercontent.com/20955511/172475783-b3b79664-a673-4e36-bfea-368eb7d29893.png)
+![instructions](https://user-images.githubusercontent.com/20955511/172483035-90eff88d-4b7d-416a-951d-001c96299476.png)
 
 ## Installation
 
