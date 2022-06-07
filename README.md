@@ -11,15 +11,17 @@
     <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=issue" alt="Issues" /></a>
 </p>
 
-Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed. The unedited comment is displayed inline. This script is compatible with the Redesign and Old Reddit.
+Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
 
-This script makes use of the [Pushshift Reddit API](https://github.com/pushshift/api).
+The unedited comment will be displayed inline, right below the current comment or submission's text.
 
-## Example usage
+This script is compatible with both Reddit's Redesign and Old Reddit.
 
-![Show Original](https://i.imgur.com/aubQhBL.png)
+The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetching the comments as they will be archived soon after they have been posted.
 
-![Shown](https://i.imgur.com/kPlXd6w.png)
+## How to use
+
+![how to use](https://user-images.githubusercontent.com/20955511/172475783-b3b79664-a673-4e36-bfea-368eb7d29893.png)
 
 ## Installation
 

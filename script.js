@@ -8,7 +8,7 @@
 // @include      https://*.reddit.com/*
 // @include      https://reddit.com/*
 // @grant        none
-// @require      https://cdn.jsdelivr.net/npm/showdown@1.9.0/dist/showdown.min.js
+// @require      https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
 // @license      MIT
 // ==/UserScript==
 
@@ -134,6 +134,22 @@
                 origBody.scrollIntoView({ behavior: "smooth" });
             }
         }, 500);
+        // on old reddit, if the comment is collapsed, expand it so the original comment is visible
+        if (isOldReddit) {
+            expandComment(commentBodyElement);
+        }
+    }
+
+    /**
+     * Expand comment if it is collapsed (on old reddit only).
+     * @param {Element} innerEl An element inside the comment.
+     */
+    function expandComment(innerEl) {
+        var collapsedComment = innerEl.closest(".collapsed");
+        if (collapsedComment) {
+            collapsedComment.classList.remove("collapsed");
+            collapsedComment.classList.add("noncollapsed");
+        }
     }
 
     /* create links and define click event */
