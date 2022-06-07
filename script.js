@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.7.0
+// @version      3.7.1
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       u/DenverCoder1
 // @match        *://*reddit.com/*
@@ -78,12 +78,17 @@
                     else el = baseEl.firstElementChild.lastElementChild;
                 }
             } else {
-            /* old reddit */
+            		/* old reddit */
                 if (document.querySelector("form[id*=" + id + "] div.md")) {
                     el = document.querySelector("form[id*=" + id + "] div.md");
                 }
                 if (!el) {
+										// comment container
                     el = document.querySelector(".report-" + id).parentElement.parentElement;
+										// if usertext available, use that instead
+										if (el.querySelector(".usertext")) {
+											el = el.querySelector(".usertext");
+										}
                 }
             }
         } catch (error) {
