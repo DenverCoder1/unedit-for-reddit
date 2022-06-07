@@ -33,6 +33,10 @@ Alternatively, you may copy the contents of [`script.js`](https://github.com/Den
 
 ## Changelog
 
+### Changes in 3.7.3
+
+* Fix duplicate "Show original" links appearing inside deleted comments
+
 ### Changes in 3.7.2
 
 * Prevent "show original" link from appearing twice on comments that are both edited and deleted.
