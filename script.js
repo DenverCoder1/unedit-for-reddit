@@ -8,7 +8,7 @@
 // @include      https://*.reddit.com/*
 // @include      https://reddit.com/*
 // @grant        none
-// @require      https://cdn.jsdelivr.net/npm/showdown@1.9.0/dist/showdown.min.js
+// @require      https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
 // @license      MIT
 // ==/UserScript==
 
@@ -188,10 +188,8 @@
     function expandComment(innerEl) {
         var collapsedComment = innerEl.closest(".collapsed");
         if (collapsedComment) {
-            var expander = collapsedComment.querySelector(".expand");
-            if (expander) {
-                expander.click();
-            }
+            collapsedComment.classList.remove("collapsed");
+            collapsedComment.classList.add("noncollapsed");
         }
     }
 
