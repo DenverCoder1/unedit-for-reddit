@@ -194,20 +194,6 @@
     }
 
     /**
-     * Expand comment if it is collapsed (on old reddit only).
-     * @param {Element} innerEl An element inside the comment.
-     */
-    function expandComment(innerEl) {
-        var collapsedComment = innerEl.closest(".collapsed");
-        if (collapsedComment) {
-            var expander = collapsedComment.querySelector(".expand");
-            if (expander) {
-                expander.click();
-            }
-        }
-    }
-
-    /**
      * Create a link to view the original comment/post.
      * @param {Element} innerEl An element inside the comment or post to create a link for.
      */
