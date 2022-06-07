@@ -37,7 +37,7 @@ The following are known limitations that cannot be fixed:
 
 * The fetched comment may occasionally be the edited version instead of the original. This is because the Pushshift archive may take more time to archive the comment than it took the user to edit the comment, therefore causing Pushshift to archive the edited version and not the original. Additionally, comments that are several years old may also show the edited version since the original versions of comments edited before the first archival will not appear in Pushshift.
 * Comments that were posted within the past few minutes may occasionally not be found since Pushshift can take some time to archive all comments.
-* Comments in private subreddits will not be found as they are not able to archived by Pushshift.
+* Comments in private subreddits will not be found as they are not able to be archived by Pushshift.
 
 ## Changelog
 
@@ -47,13 +47,13 @@ The following are known limitations that cannot be fixed:
 
 ### Changes in 3.7.2
 
-* Prevent "show original" link from appearing twice on comments that are both edited and deleted.
-* Expand comment when the "show original" link is clicked on a collapsed comment.
-* Some minor code refactoring and formatting.
+* Prevent "show original" links from appearing twice on comments that are both edited and deleted
+* Expand comment when the "show original" link is clicked on a collapsed comment
+* Some minor code refactoring and formatting
 
 ### Changes in 3.7.1
 
-* Fixed positioning of original comment on old reddit to be inline with text rather than below replies
+* Fixed positioning of original comment on Old Reddit to be inline with text rather than below replies
 
 ### Changes in 3.7.0
 
@@ -62,7 +62,7 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.6.1
 
 * Better error handling
-* More reliable when viewing edited comments on profile page
+* More reliable when viewing edited comments on profile pages
 
 ### Changes in 3.6.0
 
@@ -97,5 +97,5 @@ The following are known limitations that cannot be fixed:
 
 ### Changes in 2.0
 
-* Original comment is converted from markdown to HTML to show custom formatting.
-* Unedit now supports self-text submissions (old Reddit only)
+* The original comment is converted from markdown to HTML to show custom formatting
+* Support for self-text submissions (old Reddit only)
