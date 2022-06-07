@@ -25,6 +25,10 @@ Alternatively, you may copy the contents of `script.js` into a new script using 
 
 ----
 
+### Changes in 3.7
+
+* Added support for viewing comments removed by moderators
+
 ### Changes in 3.6
 
 * Check an second source for comments so more recent comments are less likely to be "not found"
