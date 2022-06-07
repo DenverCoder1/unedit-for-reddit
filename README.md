@@ -33,6 +33,12 @@ Alternatively, you may copy the contents of [`script.js`](https://github.com/Den
 
 ## Changelog
 
+### Changes in 3.7.2
+
+* Prevent "show original" link from appearing twice on comments that are both edited and deleted.
+* Expand comment when the "show original" link is clicked on a collapsed comment.
+* Some minor code refactoring and formatting.
+
 ### Changes in 3.7.1
 
 * Fixed positioning of original comment on old reddit to be inline with text rather than below replies
