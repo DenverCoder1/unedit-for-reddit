@@ -255,12 +255,21 @@
             editedComments = Array.from(document.querySelectorAll(".Comment div span")).filter(function (x, y, z) {
                 return x.parentElement.querySelector("a.showOriginal") === null && x.innerText.substr(0, 6) == "edited";
             });
-            /* include deleted comments */
+            /* include deleted comments by user */
             editedComments = editedComments.concat(
                 Array.from(document.querySelectorAll(".Comment div span")).filter(function (x, y, z) {
                     return (
                         x.parentElement.querySelector("a.showOriginal") === null &&
                         x.innerText.substr(0, 15) == "Comment deleted"
+                    );
+                })
+            );
+            /* include deleted comments by moderator */
+            editedComments = editedComments.concat(
+                Array.from(document.querySelectorAll(".Comment div span")).filter(function (x, y, z) {
+                    return (
+                        x.parentElement.querySelector("a.showOriginal") === null &&
+                        x.innerText.substr(0, 15) == "Comment removed"
                     );
                 })
             );
