@@ -25,11 +25,19 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 
 ## Installation
 
-This script can be installed to most userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), and others using the green button on the [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit) page.
+This script can be installed using most userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), and others using the green button on the [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit) page.
 
 [![Download this userscript on Greasy Fork](https://custom-icon-badges.herokuapp.com/badge/-Install%20on%20Greasy%20Fork-000?style=for-the-badge&logo=greasyforkpng)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
 
 Alternatively, you may copy the contents of [`script.js`](https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/script.js) into a new script using any userscript browser extension.
+
+## Known issues
+
+The following are known limitations that cannot be fixed:
+
+* The fetched comment may occasionally be the edited version instead of the original. This is because the Pushshift archive may take more time to archive the comment than it took the user to edit the comment, therefore causing Pushshift to archive the edited version and not the original. Additionally, comments that are several years old may also show the edited version since the original versions of comments edited before the first archival will not appear in Pushshift.
+* Comments that were posted within the past few minutes may occasionally not be found since Pushshift can take some time to archive all comments.
+* Comments in private subreddits will not be found as they are not able to archived by Pushshift.
 
 ## Changelog
 
