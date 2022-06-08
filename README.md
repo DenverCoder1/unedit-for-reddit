@@ -3,12 +3,14 @@
 <p align="left">
   <a href="https://discord.gg/fPrdqh3Zfu">
     <img src="https://img.shields.io/discord/819650821314052106?color=7289DA&logo=discord&logoColor=white" alt="Dev Pro Tips Discussion & Support Server" /></a>
-  <a href="https://github.com/DenverCoder1/Unedit-for-Reddit">
-    <img src="https://custom-icon-badges.herokuapp.com/github/stars/DenverCoder1/Unedit-for-Reddit?logo=star" alt="Stars" /></a>
   <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/LICENSE">
     <img src="https://custom-icon-badges.herokuapp.com/github/license/DenverCoder1/Unedit-for-Reddit?logo=law" alt="License MIT" /></a>
   <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
-    <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=issue" alt="Issues" /></a>
+    <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=github" alt="Issues" /></a>
+  <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
+    <img src="https://custom-icon-badges.herokuapp.com/github/v/release/DenverCoder1/Unedit-for-Reddit?color=000&label=greasyfork&logo=greasyforkpng" alt="Greasyfork" /></a>
+  <a href="https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka">
+    <img src="https://custom-icon-badges.herokuapp.com/chrome-web-store/v/cnpmnmpafbfojcoofaobmhmafiflgmka?logo=chrome-webstore&label=chrome" alt="Chrome Web Store" /></a>
 </p>
 
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
@@ -25,7 +27,16 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 
 ## Installation
 
-This script can be installed using most userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), and others using the green button on the [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit) page.
+### As a Chrome Extension
+
+Download from the [Chrome Web Store](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka), or alternatively, download/clone this repository, enable "Developer mode" at <chrome://extensions/>, and load the folder unpacked.
+
+[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/172667465-66581966-e74c-41a4-b4a8-17632e874f30.png)](
+https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka)
+
+### As a Userscript
+
+This script can be installed using most userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), and others using the green button on [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit).
 
 [![Download this userscript on Greasy Fork](https://custom-icon-badges.herokuapp.com/badge/-Install%20on%20Greasy%20Fork-000?style=for-the-badge&logo=greasyforkpng)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
 
