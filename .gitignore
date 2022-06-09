@@ -1,0 +1,4 @@
+web-ext-artifacts/
+.web-extension-id
+
+*.zip

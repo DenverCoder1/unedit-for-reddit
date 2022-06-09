@@ -7,10 +7,12 @@
     <img src="https://custom-icon-badges.herokuapp.com/github/license/DenverCoder1/Unedit-for-Reddit?logo=law" alt="License MIT" /></a>
   <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
     <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=github" alt="Issues" /></a>
-  <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
-    <img src="https://custom-icon-badges.herokuapp.com/github/v/release/DenverCoder1/Unedit-for-Reddit?color=000&label=greasyfork&logo=greasyforkpng" alt="Greasyfork" /></a>
   <a href="https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka">
     <img src="https://custom-icon-badges.herokuapp.com/chrome-web-store/v/cnpmnmpafbfojcoofaobmhmafiflgmka?logo=chrome-webstore&label=chrome" alt="Chrome Web Store" /></a>
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/">
+    <img src="https://custom-icon-badges.herokuapp.com/amo/v/unedit-for-reddit?color=FF7139&label=firefox&logo=firefoxpng" alt="Firefox" /></a>
+  <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
+    <img src="https://custom-icon-badges.herokuapp.com/github/v/release/DenverCoder1/Unedit-for-Reddit?color=000&label=greasyfork&logo=greasyforkpng" alt="Greasyfork" /></a>
 </p>
 
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
@@ -27,20 +29,35 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 
 ## Installation
 
-### As a Chrome Extension
-
-Download from the [Chrome Web Store](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka), or alternatively, download/clone this repository, enable "Developer mode" at <chrome://extensions/>, and load the folder unpacked.
-
-[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/172667465-66581966-e74c-41a4-b4a8-17632e874f30.png)](
+[![Install with Greasy Fork](https://user-images.githubusercontent.com/20955511/172905333-b5815a66-1013-4a1a-a6f2-7b6447aee9c5.png)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
+[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/172903902-727ce3a9-5a63-44a8-becd-bcc11e954f30.png)](
 https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka)
+[![Firefox Get the Add-on](https://user-images.githubusercontent.com/20955511/172904059-eb121557-ef91-43a6-a5f6-f4be5e20a5dc.png)](https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/)
 
 ### As a Userscript
 
-This script can be installed using most userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), and others using the green button on [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit).
-
-[![Download this userscript on Greasy Fork](https://custom-icon-badges.herokuapp.com/badge/-Install%20on%20Greasy%20Fork-000?style=for-the-badge&logo=greasyforkpng)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
+This script can be installed to most browsers using userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), among others using the green button on [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit).
 
 Alternatively, you may copy the contents of [`script.js`](https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/script.js) into a new script using any userscript browser extension.
+
+### As a Chrome Extension
+
+Install from the [Chrome Web Store](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka), or alternatively, download or clone this repository, enable "Developer mode" at <chrome://extensions/>, and load the folder unpacked.
+
+### As a Firefox Addon
+
+Install from [Mozilla Add-ons](https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/), or alternatively, follow these steps to build and install from the source:
+
+To sign the extension for use in Firefox, you will need credentials from https://addons.mozilla.org/en-US/developers/addon/api/key/. The generated extension will appear as a `.xpi` file in `./web-ext-artifacts`. This file can be opened in Firefox to install the add-on.
+
+```bash
+# Install the web-ext CLI
+npm install -g web-ext
+# web-ext only supports manifest v2 as of now
+mv manifest.json manifest-v3.json && mv manifest-v2.json manifest.json
+# Sign and generate the add-on using credentials
+web-ext sign --api-key=user:YOUR_USER_ID --api-secret=YOUR_SECRET
+```
 
 ## Known issues
 

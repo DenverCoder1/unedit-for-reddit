@@ -1,5 +1,5 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "Unedit and Undelete for Reddit",
     "description": "Creates links next to edited and deleted Reddit posts to show the original from before it was edited/removed.",
     "version": "3.7.3",
@@ -10,7 +10,7 @@
             "js": ["vendor/showdown.min.js", "script.js"]
         }
     ],
-    "action": {
+    "page_action": {
         "default_icon": "images/logo64.png",
         "default_title": "Unedit and Undelete for Reddit"
     },
@@ -20,5 +20,5 @@
         "48": "images/logo48.png",
         "128": "images/logo128.png"
     },
-    "host_permissions": ["https://api.pushshift.io/reddit/search/*"]
+    "permissions": ["https://api.pushshift.io/reddit/search/*"]
 }
