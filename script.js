@@ -162,9 +162,9 @@
         // paragraph styling
         origBody.style.opacity = 0.96;
         origBody.style.fontSize = "14px";
-        origBody.style.background = "#ffed4c5c";
+        origBody.style.background = "#fff59d";
         origBody.style.padding = "16px";
-        origBody.style.color = "inherit";
+        origBody.style.color = "black";
         origBody.style.lineHeight = "20px";
         commentBodyElement.appendChild(origBody);
         // scroll into view
@@ -373,7 +373,7 @@
         if (!isOldReddit) {
             document.head.insertAdjacentHTML(
                 "beforeend",
-                "<style>p.og pre { font-family: monospace; background: #ffffff50; padding: 6px; margin: 6px 0; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
+                "<style>p.og pre { font-family: monospace; background: #fff59d; padding: 6px; margin: 6px 0; color: black; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
             );
         }
         // find edited comments
