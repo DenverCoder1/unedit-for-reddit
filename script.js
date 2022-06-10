@@ -53,9 +53,9 @@
         try {
             // redesign
             if (!isOldReddit) {
-                var comment = innerEl?.closest(".Comment") || innerEl?.closest("[class*=t1_]");
-                postId = Array.from(comment.classList).filter(function (el) {
-                    return el.indexOf("_") > -1;
+                var post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
+                postId = Array.from(post.classList).filter(function (el) {
+                    return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
                 })[0];
             }
             // old reddit
@@ -88,39 +88,37 @@
      * @returns {Element} The container element of the comment or submission body.
      */
     function getPostBodyElement(postId) {
-        var bodyEl = null;
-        try {
-            // redesign
-            if (!isOldReddit) {
-                var baseEl = document.getElementById(postId);
-                if (baseEl) {
-                    if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0)
-                        bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
-                    else bodyEl = baseEl;
-                }
-                baseEl = document.querySelector(".Comment." + postId);
-                if (!bodyEl && baseEl) {
-                    if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0)
-                        bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
-                    else bodyEl = baseEl.firstElementChild.lastElementChild;
+        var bodyEl = null,
+            baseEl = null;
+        // redesign
+        if (!isOldReddit) {
+            baseEl = document.querySelector(`#${postId}, .Comment.${postId}`);
+            if (baseEl) {
+                if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0) {
+                    bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
+                } else if (isInSubmission(baseEl) && baseEl?.firstElementChild?.lastElementChild) {
+                    bodyEl = baseEl.firstElementChild.lastElementChild;
+                } else {
+                    bodyEl = baseEl;
                 }
             }
-            // old reddit
-            else {
-                if (document.querySelector("form[id*=" + postId + "] div.md")) {
-                    bodyEl = document.querySelector("form[id*=" + postId + "] div.md");
-                }
-                if (!bodyEl) {
-                    // comment container
-                    bodyEl = document.querySelector(".report-" + postId).parentElement.parentElement;
-                    // if usertext available, use that instead
-                    if (bodyEl.querySelector(".usertext")) {
-                        bodyEl = bodyEl.querySelector(".usertext");
-                    }
-                }
+        }
+        // old reddit
+        else {
+            // old reddit comments
+            baseEl = document.querySelector(`form[id*='${postId}'] .md`);
+            if (baseEl?.closest(".entry")) {
+                bodyEl = baseEl;
+            } else {
+                baseEl = document.querySelector(".report-" + postId);
+                bodyEl = baseEl ? baseEl.closest(".entry").querySelector(".usertext") : null;
             }
-        } catch (error) {
-            return null;
+            // old reddit submissions
+            if (!bodyEl) {
+                bodyEl =
+                    document.querySelector("#siteTable .entry form .md") ||
+                    document.querySelector("#siteTable .entry form .usertext-body");
+            }
         }
         return bodyEl;
     }
@@ -131,7 +129,7 @@
      * @returns {boolean} Whether or not the element is in a selftext submission
      */
     function isInSubmission(innerEl) {
-        return innerEl.parentElement.parentElement.className == "top-matter";
+        return Boolean(innerEl.closest("#siteTable, .Post"));
     }
 
     /**
@@ -243,6 +241,8 @@
                 currentLoading = this;
                 this.innerHTML = "loading...";
 
+                console.info("Fetching from " + idURL + " and " + authorURL);
+
                 // request from pushshift api
                 await Promise.all([
                     fetch(idURL)
@@ -267,7 +267,7 @@
                             // locate comment body
                             var commentBodyElement = getPostBodyElement(postId);
                             var post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            console.log({ author, id: postId, post });
+                            console.info("Response", { author, id: postId, post, data: out?.data });
                             // check that comment was fetched and body element exists
                             if (commentBodyElement && post?.body) {
                                 // create new paragraph containing the body of the original comment
@@ -283,13 +283,11 @@
                             } else if (out?.data?.length === 0) {
                                 // data was not returned or returned empty
                                 loading.innerHTML = "not found";
-                                console.log("id: " + postId);
-                                console.log(out);
+                                console.error("Not found:", out);
                             } else {
                                 // other issue occurred with displaying comment
                                 loading.innerHTML = "fetch failed";
-                                console.log("id: " + postId);
-                                console.log(out);
+                                console.error("Fetch failed:", out);
                             }
                         });
                     })
@@ -312,28 +310,41 @@
         if (scriptTimeout) {
             scriptTimeout = null;
         }
-        // list of elements to check for edited or deleted status
-        var elementsToCheck = [];
-        // list of comments which have been edited
-        var editedComments = [];
+        // list elements to check for edited or deleted status
+        var selectors = [],
+            elementsToCheck = [],
+            editedComments = [];
         // redesign
         if (!isOldReddit) {
-            elementsToCheck = Array.from(document.querySelectorAll(".Comment div:first-of-type span span:not(.found)"));
+            selectors = [
+                ".Comment div:first-of-type span span:not(.found)", // Comments "edited..." or "Comment deleted/removed..."
+                ".Post div div div:last-of-type div ~ div:last-of-type:not(.found)", // Submissions "It doesn't appear in any feeds..." message
+            ];
+            elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 return (
-                    el.innerText.substring(0, 6) == "edited" || // include edited comments
-                    el.innerText.substring(0, 15) == "Comment deleted" || // include comments deleted by user
-                    el.innerText.substring(0, 15) == "Comment removed" // include comments removed by moderator
+                    el.innerText.substring(0, 6) === "edited" || // include edited comments
+                    el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
+                    el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
+                    el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
+                    el.innerText.substring(0, 23) == "Moderators remove posts" // include submissions removed by moderators
                 );
             });
         }
         // old Reddit
         else {
-            elementsToCheck = Array.from(document.querySelectorAll("time:not(.found), em:not(.found)"));
+            selectors = [
+                ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
+                ".entry p.tagline em:not(.found)", // Comment "[deleted]" author
+                "#siteTable p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
+                "#siteTable .usertext-body em:not(.found)", // Submission "[removed]" body
+            ];
+            elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 return (
-                    el.title.substring(0, 11) == "last edited" || // include edited comments
-                    el.innerText === "[deleted]" // include comments deleted by user or moderator
+                    el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
+                    el.innerText === "[deleted]" || // include comments or submissions deleted by user
+                    el.innerText === "[removed]" // include comments or submissions removed by moderator
                 );
             });
         }
