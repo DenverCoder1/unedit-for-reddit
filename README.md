@@ -30,8 +30,7 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 ## Installation
 
 [![Install with Greasy Fork](https://user-images.githubusercontent.com/20955511/172905333-b5815a66-1013-4a1a-a6f2-7b6447aee9c5.png)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
-[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/172903902-727ce3a9-5a63-44a8-becd-bcc11e954f30.png)](
-https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka)
+[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/172903902-727ce3a9-5a63-44a8-becd-bcc11e954f30.png)](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka)
 [![Firefox Get the Add-on](https://user-images.githubusercontent.com/20955511/172904059-eb121557-ef91-43a6-a5f6-f4be5e20a5dc.png)](https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/)
 
 ### As a Userscript
@@ -63,67 +62,67 @@ web-ext sign --api-key=user:YOUR_USER_ID --api-secret=YOUR_SECRET
 
 The following are known limitations that cannot be fixed:
 
-* The fetched comment may occasionally be the edited version instead of the original. This is because the Pushshift archive may take more time to archive the comment than it took the user to edit the comment, therefore causing Pushshift to archive the edited version and not the original. Additionally, comments that are several years old may also show the edited version since the original versions of comments edited before the first archival will not appear in Pushshift.
-* Comments that were posted within the past few minutes may occasionally not be found since Pushshift can take some time to archive all comments.
-* Comments in private subreddits will not be found as they are not able to be archived by Pushshift.
+-   The fetched comment may occasionally be the edited version instead of the original. This is because the Pushshift archive may take more time to archive the comment than it took the user to edit the comment, therefore causing Pushshift to archive the edited version and not the original. Additionally, comments that are several years old may also show the edited version since the original versions of comments edited before the first archival will not appear in Pushshift.
+-   Comments that were posted within the past few minutes may occasionally not be found since Pushshift can take some time to archive all comments.
+-   Comments in private subreddits will not be found as they are not able to be archived by Pushshift.
 
 ## Changelog
 
 ### Changes in 3.7.3
 
-* Fix duplicate "Show original" links appearing inside deleted comments
+-   Fix duplicate "Show original" links appearing inside deleted comments
 
 ### Changes in 3.7.2
 
-* Prevent "show original" links from appearing twice on comments that are both edited and deleted
-* Expand comment when the "show original" link is clicked on a collapsed comment
-* Some minor code refactoring and formatting
+-   Prevent "show original" links from appearing twice on comments that are both edited and deleted
+-   Expand comment when the "show original" link is clicked on a collapsed comment
+-   Some minor code refactoring and formatting
 
 ### Changes in 3.7.1
 
-* Fixed positioning of original comment on Old Reddit to be inline with text rather than below replies
+-   Fixed positioning of original comment on Old Reddit to be inline with text rather than below replies
 
 ### Changes in 3.7.0
 
-* Added support for viewing comments removed by moderators
+-   Added support for viewing comments removed by moderators
 
 ### Changes in 3.6.1
 
-* Better error handling
-* More reliable when viewing edited comments on profile pages
+-   Better error handling
+-   More reliable when viewing edited comments on profile pages
 
 ### Changes in 3.6.0
 
-* Check a second source for comments so more recent comments are less likely to be "not found"
-* Fixes to getting comment ids in Reddit redesign
+-   Check a second source for comments so more recent comments are less likely to be "not found"
+-   Fixes to getting comment ids in Reddit redesign
 
 ### Changes in 3.5
 
-* Added compatibility with Old Reddit links without "old.reddit" in the URL
-* Added additional @includes for more compatibility
+-   Added compatibility with Old Reddit links without "old.reddit" in the URL
+-   Added additional @includes for more compatibility
 
 ### Changes in 3.4
 
-* Fixed @match for more compatibility
+-   Fixed @match for more compatibility
 
 ### Changes in 3.3
 
-* Added support for profile pages (Redesign)
+-   Added support for profile pages (Redesign)
 
 ### Changes in 3.2
 
-* Works more accurately in post previews (Redesign feature where the post is shown in a popup when clicked from post list)
+-   Works more accurately in post previews (Redesign feature where the post is shown in a popup when clicked from post list)
 
 ### Changes in 3.1
 
-* Fixed missing styling on comments shown in the Redesign
-* Fixed placement of inline comment to work on comments that do not end with a paragraph (`<p>`) element
+-   Fixed missing styling on comments shown in the Redesign
+-   Fixed placement of inline comment to work on comments that do not end with a paragraph (`<p>`) element
 
 ### Changes in 3.0
 
-* Added support for deleted comments
+-   Added support for deleted comments
 
 ### Changes in 2.0
 
-* The original comment is converted from markdown to HTML to show custom formatting
-* Support for self-text submissions (old Reddit only)
+-   The original comment is converted from markdown to HTML to show custom formatting
+-   Support for self-text submissions (old Reddit only)
