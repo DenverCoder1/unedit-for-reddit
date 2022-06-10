@@ -65,6 +65,7 @@ The following are known limitations that cannot be fixed:
 -   The fetched comment may occasionally be the edited version instead of the original. This is because the Pushshift archive may take more time to archive the comment than it took the user to edit the comment, therefore causing Pushshift to archive the edited version and not the original. Additionally, comments that are several years old may also show the edited version since the original versions of comments edited before the first archival will not appear in Pushshift.
 -   Comments that were posted within the past few minutes may occasionally not be found since Pushshift can take some time to archive all comments.
 -   Comments in private subreddits will not be found as they are not able to be archived by Pushshift.
+-   Comments deleted by Reddit's spam filter will not be found as the text is never available for Pushshift to archive.
 
 ## Changelog
 
