@@ -68,6 +68,11 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.8.0
+
+-   Added support for deleted and moderator-removed submissions on Redesign and Old Reddit.
+-   Changed background and foreground color of original posts to be consistent across all posts and themes
+
 ### Changes in 3.7.3
 
 -   Fix duplicate "Show original" links appearing inside deleted comments
