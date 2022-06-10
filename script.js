@@ -43,6 +43,62 @@
      */
     var mdConverter = new showdown.Converter();
 
+    var logging = {
+        INFO: "info",
+        WARN: "warn",
+        ERROR: "error",
+        TABLE: "table",
+
+        /**
+         * Log a message to the console
+         * @param {string} level The console method to use e.g. "log", "info", "warn", "error", "table"
+         * @param {...string} messages - Any number of messages to log
+         */
+        _format_log(level, ...messages) {
+            var logger = console[level in console ? level : LOG];
+            if (logger) {
+                logger(
+                    `%c[unedit-for-reddit] %c[${level.toUpperCase()}]`,
+                    "color: #00b6b6",
+                    "color: #888800",
+                    ...messages
+                );
+            }
+        },
+
+        /**
+         * Log an info message to the console
+         * @param {...string} messages - Any number of messages to log
+         */
+        info(...messages) {
+            logging._format_log(this.INFO, ...messages);
+        },
+
+        /**
+         * Log a warning message to the console
+         * @param {...string} messages - Any number of messages to log
+         */
+        warn(...messages) {
+            logging._format_log(this.WARN, ...messages);
+        },
+
+        /**
+         * Log an error message to the console
+         * @param {...string} messages - Any number of messages to log
+         */
+        error(...messages) {
+            logging._format_log(this.ERROR, ...messages);
+        },
+
+        /**
+         * Log a table to the console
+         * @param {Object} data - The table to log
+         */
+        table(data) {
+            logging._format_log(this.TABLE, data);
+        },
+    };
+
     /**
      * Find the ID of a comment or submission.
      * @param {Element} innerEl An element inside the comment.
@@ -241,19 +297,19 @@
                 currentLoading = this;
                 this.innerHTML = "loading...";
 
-                console.info("Fetching from " + idURL + " and " + authorURL);
+                logging.info("Fetching from " + idURL + " and " + authorURL);
 
                 // request from pushshift api
                 await Promise.all([
                     fetch(idURL)
                         .then((resp) => resp.json())
                         .catch((error) => {
-                            console.error("Error:", error);
+                            logging.error("Error:", error);
                         }),
                     fetch(authorURL)
                         .then((resp) => resp.json())
                         .catch((error) => {
-                            console.error("Error:", error);
+                            logging.error("Error:", error);
                         }),
                 ])
                     .then((responses) => {
@@ -267,7 +323,7 @@
                             // locate comment body
                             var commentBodyElement = getPostBodyElement(postId);
                             var post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            console.info("Response", { author, id: postId, post, data: out?.data });
+                            logging.info("Response", { author, id: postId, post, data: out?.data });
                             // check that comment was fetched and body element exists
                             if (commentBodyElement && post?.body) {
                                 // create new paragraph containing the body of the original comment
@@ -283,11 +339,15 @@
                             } else if (out?.data?.length === 0) {
                                 // data was not returned or returned empty
                                 loading.innerHTML = "not found";
-                                console.error("Not found:", out);
+                                logging.warn("Not found:", out);
+                            } else if (!commentBodyElement) {
+                                // the comment body element was not found
+                                loading.innerHTML = "body element not found";
+                                logging.warn("Body element not found:", out);
                             } else {
                                 // other issue occurred with displaying comment
                                 loading.innerHTML = "fetch failed";
-                                console.error("Fetch failed:", out);
+                                logging.error("Fetch failed:", out);
                             }
                         });
                     })
