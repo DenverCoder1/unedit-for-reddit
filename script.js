@@ -55,15 +55,8 @@
          * @param {...string} messages - Any number of messages to log
          */
         _format_log(level, ...messages) {
-            var logger = console[level in console ? level : LOG];
-            if (logger) {
-                logger(
-                    `%c[unedit-for-reddit] %c[${level.toUpperCase()}]`,
-                    "color: #00b6b6",
-                    "color: #888800",
-                    ...messages
-                );
-            }
+            var logger = level in console ? console[level] : console.log;
+            logger(`%c[unedit-for-reddit] %c[${level.toUpperCase()}]`, "color: #00b6b6", "color: #888800", ...messages);
         },
 
         /**
