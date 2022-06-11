@@ -106,34 +106,33 @@
      */
     function getPostId(innerEl) {
         var postId = "";
-        try {
-            // redesign
-            if (!isOldReddit) {
-                var post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
-                postId = Array.from(post.classList).filter(function (el) {
-                    return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
-                })[0];
-            }
-            // old reddit
-            else {
-                postId = innerEl.parentElement.parentElement.parentElement.id;
-                // old reddit submission
-                if (postId === "" && isInSubmission(innerEl)) {
-                    postId = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//)[1];
-                }
-                // old reddit comment
-                else {
-                    postId = postId.split("_").slice(1).join("_");
-                }
-                // if still not found, check the .reportform element
-                if (postId === "") {
-                    postId = innerEl.parentElement.parentElement
-                        .getElementsByClassName("reportform")[0]
-                        .className.replace(/.*t1/, "t1");
+        // redesign
+        if (!isOldReddit) {
+            var post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
+            postId = Array.from(post.classList).filter(function (el) {
+                return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
+            })[0];
+        }
+        // old reddit
+        else {
+            // old reddit comment
+            postId = innerEl?.parentElement?.parentElement?.parentElement?.id.replace("thing_", "");
+            // old reddit submission
+            if (!postId && isInSubmission(innerEl)) {
+                var match = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//);
+                postId = match ? match[1] : null;
+                // submission in list view
+                if (!postId) {
+                    var thing = innerEl.closest(".thing");
+                    postId = thing?.id.replace("thing_", "");
                 }
             }
-        } catch (error) {
-            return null;
+            // if still not found, check for the .reportform element
+            if (!postId) {
+                postId = innerEl.parentElement.parentElement
+                    .getElementsByClassName("reportform")[0]
+                    .className.replace(/.*t1/, "t1");
+            }
         }
         return postId;
     }
@@ -172,8 +171,12 @@
             // old reddit submissions
             if (!bodyEl) {
                 bodyEl =
-                    document.querySelector("#siteTable .entry form .md") ||
-                    document.querySelector("#siteTable .entry form .usertext-body");
+                    document.querySelector("div[data-url] .entry form .md") ||
+                    document.querySelector("div[data-url] .entry form .usertext-body");
+            }
+            // link view
+            if (!bodyEl) {
+                bodyEl = document.querySelector(`.id-${postId}`);
             }
         }
         return bodyEl;
@@ -185,7 +188,12 @@
      * @returns {boolean} Whether or not the element is in a selftext submission
      */
     function isInSubmission(innerEl) {
-        return Boolean(innerEl.closest("#siteTable, .Post"));
+        var selectors = [
+            "a.thumbnail", // old reddit on profile page or list view
+            "div[data-url]", // old reddit on submission page
+            ".Post", // redesign
+        ];
+        return Boolean(innerEl.closest(selectors.join(", ")));
     }
 
     /**
@@ -264,7 +272,13 @@
         showLinkEl.style.cursor = "pointer";
         showLinkEl.style.marginLeft = "6px";
         innerEl.parentElement.appendChild(showLinkEl);
-        innerEl.className += " found";
+        innerEl.classList.add("match");
+        // find id of selected comment or submission
+        var postId = getPostId(showLinkEl);
+        showLinkEl.alt = `View original post for ID ${postId}`;
+        if (!postId) {
+            showLinkEl.style.color = "#dd2c00";
+        }
         // click event
         showLinkEl.addEventListener(
             "click",
@@ -273,8 +287,6 @@
                 if (typeof currentLoading != "undefined" && currentLoading !== null) {
                     return;
                 }
-                // find id of selected comment
-                var postId = getPostId(this);
                 // create url for getting comment/post from pushshift api
                 var idURL = isInSubmission(this)
                     ? "https://api.pushshift.io/reddit/search/submission/?ids=" +
@@ -382,6 +394,7 @@
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
+                el.classList.add("found");
                 return (
                     el.innerText.substring(0, 6) === "edited" || // include edited comments
                     el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
@@ -396,11 +409,12 @@
             selectors = [
                 ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
                 ".entry p.tagline em:not(.found)", // Comment "[deleted]" author
-                "#siteTable p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
-                "#siteTable .usertext-body em:not(.found)", // Submission "[removed]" body
+                "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
+                "div[data-url] .usertext-body em:not(.found)", // Submission "[removed]" body
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
+                el.classList.add("found");
                 return (
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
