@@ -75,6 +75,7 @@ The following are known limitations that cannot be fixed:
 -   Added support for viewing edited submissions in list views (Old Reddit only)
 -   Better error handling and logging
 -   Changed background and foreground color of original posts to be consistent across all posts and themes
+-   Made "Original Post" heading bold on Redesign for consistency
 
 ### Changes in 3.7.3
 
