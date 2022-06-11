@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.7.3
+// @version      3.8.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        *://*reddit.com/*
@@ -43,6 +43,55 @@
      */
     var mdConverter = new showdown.Converter();
 
+    var logging = {
+        INFO: "info",
+        WARN: "warn",
+        ERROR: "error",
+        TABLE: "table",
+
+        /**
+         * Log a message to the console
+         * @param {string} level The console method to use e.g. "log", "info", "warn", "error", "table"
+         * @param {...string} messages - Any number of messages to log
+         */
+        _format_log(level, ...messages) {
+            var logger = level in console ? console[level] : console.log;
+            logger(`%c[unedit-for-reddit] %c[${level.toUpperCase()}]`, "color: #00b6b6", "color: #888800", ...messages);
+        },
+
+        /**
+         * Log an info message to the console
+         * @param {...string} messages - Any number of messages to log
+         */
+        info(...messages) {
+            logging._format_log(this.INFO, ...messages);
+        },
+
+        /**
+         * Log a warning message to the console
+         * @param {...string} messages - Any number of messages to log
+         */
+        warn(...messages) {
+            logging._format_log(this.WARN, ...messages);
+        },
+
+        /**
+         * Log an error message to the console
+         * @param {...string} messages - Any number of messages to log
+         */
+        error(...messages) {
+            logging._format_log(this.ERROR, ...messages);
+        },
+
+        /**
+         * Log a table to the console
+         * @param {Object} data - The table to log
+         */
+        table(data) {
+            logging._format_log(this.TABLE, data);
+        },
+    };
+
     /**
      * Find the ID of a comment or submission.
      * @param {Element} innerEl An element inside the comment.
@@ -50,34 +99,33 @@
      */
     function getPostId(innerEl) {
         var postId = "";
-        try {
-            // redesign
-            if (!isOldReddit) {
-                var comment = innerEl?.closest(".Comment") || innerEl?.closest("[class*=t1_]");
-                postId = Array.from(comment.classList).filter(function (el) {
-                    return el.indexOf("_") > -1;
-                })[0];
-            }
-            // old reddit
-            else {
-                postId = innerEl.parentElement.parentElement.parentElement.id;
-                // old reddit submission
-                if (postId === "" && isInSubmission(innerEl)) {
-                    postId = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//)[1];
-                }
-                // old reddit comment
-                else {
-                    postId = postId.split("_").slice(1).join("_");
-                }
-                // if still not found, check the .reportform element
-                if (postId === "") {
-                    postId = innerEl.parentElement.parentElement
-                        .getElementsByClassName("reportform")[0]
-                        .className.replace(/.*t1/, "t1");
+        // redesign
+        if (!isOldReddit) {
+            var post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
+            postId = Array.from(post.classList).filter(function (el) {
+                return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
+            })[0];
+        }
+        // old reddit
+        else {
+            // old reddit comment
+            postId = innerEl?.parentElement?.parentElement?.parentElement?.id.replace("thing_", "");
+            // old reddit submission
+            if (!postId && isInSubmission(innerEl)) {
+                var match = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//);
+                postId = match ? match[1] : null;
+                // submission in list view
+                if (!postId) {
+                    var thing = innerEl.closest(".thing");
+                    postId = thing?.id.replace("thing_", "");
                 }
             }
-        } catch (error) {
-            return null;
+            // if still not found, check for the .reportform element
+            if (!postId) {
+                postId = innerEl.parentElement.parentElement
+                    .getElementsByClassName("reportform")[0]
+                    .className.replace(/.*t1/, "t1");
+            }
         }
         return postId;
     }
@@ -88,39 +136,41 @@
      * @returns {Element} The container element of the comment or submission body.
      */
     function getPostBodyElement(postId) {
-        var bodyEl = null;
-        try {
-            // redesign
-            if (!isOldReddit) {
-                var baseEl = document.getElementById(postId);
-                if (baseEl) {
-                    if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0)
-                        bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
-                    else bodyEl = baseEl;
-                }
-                baseEl = document.querySelector(".Comment." + postId);
-                if (!bodyEl && baseEl) {
-                    if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0)
-                        bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
-                    else bodyEl = baseEl.firstElementChild.lastElementChild;
+        var bodyEl = null,
+            baseEl = null;
+        // redesign
+        if (!isOldReddit) {
+            baseEl = document.querySelector(`#${postId}, .Comment.${postId}`);
+            if (baseEl) {
+                if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0) {
+                    bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
+                } else if (isInSubmission(baseEl) && baseEl?.firstElementChild?.lastElementChild) {
+                    bodyEl = baseEl.firstElementChild.lastElementChild;
+                } else {
+                    bodyEl = baseEl;
                 }
             }
-            // old reddit
-            else {
-                if (document.querySelector("form[id*=" + postId + "] div.md")) {
-                    bodyEl = document.querySelector("form[id*=" + postId + "] div.md");
-                }
-                if (!bodyEl) {
-                    // comment container
-                    bodyEl = document.querySelector(".report-" + postId).parentElement.parentElement;
-                    // if usertext available, use that instead
-                    if (bodyEl.querySelector(".usertext")) {
-                        bodyEl = bodyEl.querySelector(".usertext");
-                    }
-                }
+        }
+        // old reddit
+        else {
+            // old reddit comments
+            baseEl = document.querySelector(`form[id*='${postId}'] .md`);
+            if (baseEl?.closest(".entry")) {
+                bodyEl = baseEl;
+            } else {
+                baseEl = document.querySelector(".report-" + postId);
+                bodyEl = baseEl ? baseEl.closest(".entry").querySelector(".usertext") : null;
             }
-        } catch (error) {
-            return null;
+            // old reddit submissions
+            if (!bodyEl) {
+                bodyEl =
+                    document.querySelector("div[data-url] .entry form .md") ||
+                    document.querySelector("div[data-url] .entry form .usertext-body");
+            }
+            // link view
+            if (!bodyEl) {
+                bodyEl = document.querySelector(`.id-${postId}`);
+            }
         }
         return bodyEl;
     }
@@ -131,7 +181,12 @@
      * @returns {boolean} Whether or not the element is in a selftext submission
      */
     function isInSubmission(innerEl) {
-        return innerEl.parentElement.parentElement.className == "top-matter";
+        var selectors = [
+            "a.thumbnail", // old reddit on profile page or list view
+            "div[data-url]", // old reddit on submission page
+            ".Post", // redesign
+        ];
+        return Boolean(innerEl.closest(selectors.join(", ")));
     }
 
     /**
@@ -164,9 +219,9 @@
         // paragraph styling
         origBody.style.opacity = 0.96;
         origBody.style.fontSize = "14px";
-        origBody.style.background = "#ffed4c5c";
+        origBody.style.background = "#fff59d";
         origBody.style.padding = "16px";
-        origBody.style.color = "inherit";
+        origBody.style.color = "black";
         origBody.style.lineHeight = "20px";
         commentBodyElement.appendChild(origBody);
         // scroll into view
@@ -210,7 +265,13 @@
         showLinkEl.style.cursor = "pointer";
         showLinkEl.style.marginLeft = "6px";
         innerEl.parentElement.appendChild(showLinkEl);
-        innerEl.className += " found";
+        innerEl.classList.add("match");
+        // find id of selected comment or submission
+        var postId = getPostId(showLinkEl);
+        showLinkEl.alt = `View original post for ID ${postId}`;
+        if (!postId) {
+            showLinkEl.style.color = "#dd2c00";
+        }
         // click event
         showLinkEl.addEventListener(
             "click",
@@ -219,8 +280,6 @@
                 if (typeof currentLoading != "undefined" && currentLoading !== null) {
                     return;
                 }
-                // find id of selected comment
-                var postId = getPostId(this);
                 // create url for getting comment/post from pushshift api
                 var idURL = isInSubmission(this)
                     ? "https://api.pushshift.io/reddit/search/submission/?ids=" +
@@ -243,17 +302,19 @@
                 currentLoading = this;
                 this.innerHTML = "loading...";
 
+                logging.info("Fetching from " + idURL + " and " + authorURL);
+
                 // request from pushshift api
                 await Promise.all([
                     fetch(idURL)
                         .then((resp) => resp.json())
                         .catch((error) => {
-                            console.error("Error:", error);
+                            logging.error("Error:", error);
                         }),
                     fetch(authorURL)
                         .then((resp) => resp.json())
                         .catch((error) => {
-                            console.error("Error:", error);
+                            logging.error("Error:", error);
                         }),
                 ])
                     .then((responses) => {
@@ -267,29 +328,35 @@
                             // locate comment body
                             var commentBodyElement = getPostBodyElement(postId);
                             var post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            console.log({ author, id: postId, post });
+                            logging.info("Response", { author, id: postId, post, data: out?.data });
                             // check that comment was fetched and body element exists
-                            if (commentBodyElement && post?.body) {
+                            if (!commentBodyElement) {
+                                // the comment body element was not found
+                                loading.innerHTML = "body element not found";
+                                logging.error("Body element not found:", out);
+                            } else if (post?.body) {
                                 // create new paragraph containing the body of the original comment
                                 showOriginalComment(commentBodyElement, "comment", post.body);
                                 // remove loading status from comment
                                 loading.innerHTML = "";
-                            } else if (commentBodyElement && post?.selftext) {
+                            } else if (post?.selftext) {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
                                 showOriginalComment(commentBodyElement, "post", post.selftext);
                                 // remove loading status from post
                                 loading.innerHTML = "";
                             } else if (out?.data?.length === 0) {
-                                // data was not returned or returned empty
+                                // data was returned empty
                                 loading.innerHTML = "not found";
-                                console.log("id: " + postId);
-                                console.log(out);
+                                logging.warn("No results:", out);
+                            } else if (out?.data?.length > 0) {
+                                // no matching comment/post was found in the data
+                                loading.innerHTML = "not found";
+                                logging.warn("No matching post:", out);
                             } else {
                                 // other issue occurred with displaying comment
                                 loading.innerHTML = "fetch failed";
-                                console.log("id: " + postId);
-                                console.log(out);
+                                logging.error("Fetch failed:", out);
                             }
                         });
                     })
@@ -312,28 +379,43 @@
         if (scriptTimeout) {
             scriptTimeout = null;
         }
-        // list of elements to check for edited or deleted status
-        var elementsToCheck = [];
-        // list of comments which have been edited
-        var editedComments = [];
+        // list elements to check for edited or deleted status
+        var selectors = [],
+            elementsToCheck = [],
+            editedComments = [];
         // redesign
         if (!isOldReddit) {
-            elementsToCheck = Array.from(document.querySelectorAll(".Comment div:first-of-type span span:not(.found)"));
+            selectors = [
+                ".Comment div:first-of-type span span:not(.found)", // Comments "edited..." or "Comment deleted/removed..."
+                ".Post div div div:last-of-type div ~ div:last-of-type:not(.found)", // Submissions "It doesn't appear in any feeds..." message
+            ];
+            elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
+                el.classList.add("found");
                 return (
-                    el.innerText.substring(0, 6) == "edited" || // include edited comments
-                    el.innerText.substring(0, 15) == "Comment deleted" || // include comments deleted by user
-                    el.innerText.substring(0, 15) == "Comment removed" // include comments removed by moderator
+                    el.innerText.substring(0, 6) === "edited" || // include edited comments
+                    el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
+                    el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
+                    el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
+                    el.innerText.substring(0, 23) == "Moderators remove posts" // include submissions removed by moderators
                 );
             });
         }
         // old Reddit
         else {
-            elementsToCheck = Array.from(document.querySelectorAll("time:not(.found), em:not(.found)"));
+            selectors = [
+                ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
+                ".entry p.tagline em:not(.found)", // Comment "[deleted]" author
+                "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
+                "div[data-url] .usertext-body em:not(.found)", // Submission "[removed]" body
+            ];
+            elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
+                el.classList.add("found");
                 return (
-                    el.title.substring(0, 11) == "last edited" || // include edited comments
-                    el.innerText === "[deleted]" // include comments deleted by user or moderator
+                    el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
+                    el.innerText === "[deleted]" || // include comments or submissions deleted by user
+                    el.innerText === "[removed]" // include comments or submissions removed by moderator
                 );
             });
         }
@@ -362,7 +444,7 @@
         if (!isOldReddit) {
             document.head.insertAdjacentHTML(
                 "beforeend",
-                "<style>p.og pre { font-family: monospace; background: #ffffff50; padding: 6px; margin: 6px 0; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
+                "<style>p.og pre { font-family: monospace; background: #fff59d; padding: 6px; margin: 6px 0; color: black; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og > h3:first-child { font-weight: bold; margin-bottom: 0.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
             );
         }
         // find edited comments
