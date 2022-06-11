@@ -337,25 +337,29 @@
                             var post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
                             logging.info("Response", { author, id: postId, post, data: out?.data });
                             // check that comment was fetched and body element exists
-                            if (commentBodyElement && post?.body) {
+                            if (!commentBodyElement) {
+                                // the comment body element was not found
+                                loading.innerHTML = "body element not found";
+                                logging.error("Body element not found:", out);
+                            } else if (post?.body) {
                                 // create new paragraph containing the body of the original comment
                                 showOriginalComment(commentBodyElement, "comment", post.body);
                                 // remove loading status from comment
                                 loading.innerHTML = "";
-                            } else if (commentBodyElement && post?.selftext) {
+                            } else if (post?.selftext) {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
                                 showOriginalComment(commentBodyElement, "post", post.selftext);
                                 // remove loading status from post
                                 loading.innerHTML = "";
                             } else if (out?.data?.length === 0) {
-                                // data was not returned or returned empty
+                                // data was returned empty
                                 loading.innerHTML = "not found";
-                                logging.warn("Not found:", out);
-                            } else if (!commentBodyElement) {
-                                // the comment body element was not found
-                                loading.innerHTML = "body element not found";
-                                logging.warn("Body element not found:", out);
+                                logging.warn("No results:", out);
+                            } else if (out?.data?.length > 0) {
+                                // no matching comment/post was found in the data
+                                loading.innerHTML = "not found";
+                                logging.warn("No matching post:", out);
                             } else {
                                 // other issue occurred with displaying comment
                                 loading.innerHTML = "fetch failed";
