@@ -71,7 +71,9 @@ The following are known limitations that cannot be fixed:
 
 ### Changes in 3.8.0
 
--   Added support for deleted and moderator-removed submissions on Redesign and Old Reddit.
+-   Added support for viewing deleted and moderator-removed submissions on Redesign and Old Reddit
+-   Added support for viewing edited submissions in list views (Old Reddit only)
+-   Better error handling and logging
 -   Changed background and foreground color of original posts to be consistent across all posts and themes
 
 ### Changes in 3.7.3
@@ -81,7 +83,7 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.7.2
 
 -   Prevent "show original" links from appearing twice on comments that are both edited and deleted
--   Expand comment when the "show original" link is clicked on a collapsed comment
+-   Expand comment when the "show original" link is clicked on a collapsed comment (Old Reddit only)
 -   Some minor code refactoring and formatting
 
 ### Changes in 3.7.1
