@@ -517,8 +517,12 @@
             });
         }
         // create links
-        editedComments.forEach(function (x) {
-            createLink(x);
+        editedComments.forEach(function (el) {
+            // for removed submissions, add the link to an element in the tagline instead of the body
+            if (el.closest(".usertext-body") && el.innerText === "[removed]") {
+                el = el.closest(".entry")?.querySelector("p.tagline span:first-of-type") || el;
+            }
+            createLink(el);
         });
     }
 
