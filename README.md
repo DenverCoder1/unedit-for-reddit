@@ -12,7 +12,7 @@
   <a href="https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/">
     <img src="https://custom-icon-badges.herokuapp.com/amo/v/unedit-for-reddit?color=FF7139&label=firefox&logo=firefoxpng" alt="Firefox" /></a>
   <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
-    <img src="https://custom-icon-badges.herokuapp.com/github/v/release/DenverCoder1/Unedit-for-Reddit?color=000&label=greasyfork&logo=greasyforkpng" alt="Greasyfork" /></a>
+    <img src="https://custom-icon-badges.herokuapp.com/github/v/release/DenverCoder1/Unedit-for-Reddit?color=000&label=greasy+fork&logo=greasyforkpng" alt="Greasy Fork" /></a>
 </p>
 
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
@@ -35,7 +35,7 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 
 ### As a Userscript
 
-This script can be installed to most browsers using userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), among others using the green button on [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit).
+This script can be installed on most browsers using userscript browser extensions such as [Violentmonkey](https://violentmonkey.github.io/), [Tampermonkey](https://www.tampermonkey.net/), among others using the green button on [Greasy Fork](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit).
 
 Alternatively, you may copy the contents of [`script.js`](https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/script.js) into a new script using any userscript browser extension.
 
@@ -71,7 +71,7 @@ The following are known limitations that cannot be fixed:
 
 ## Changes in 3.9.0
 
--   Support for edited submission on Reddit Redesign on page of submission, list view, and popup view
+-   Support for edited submissions on Reddit Redesign on submission pages, list view, and popup view
 -   Displays how long ago submissions were edited on Redesign since Reddit doesn't display this information
 -   Minor code refactoring and added comments
 
