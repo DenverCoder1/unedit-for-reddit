@@ -38,6 +38,14 @@
     let currentLoading = null;
 
     /**
+     * List of submission ids of edited posts.
+     * Used on Reddit redesign since the submissions are not marked as such.
+     * This is set in the "load" event listener from the Reddit JSON API.
+     * @type {Array<string>}
+     */
+    let editedSubmissionIds = [];
+
+    /**
      * Showdown markdown converter
      * @type {showdown.Converter}
      */
@@ -149,6 +157,10 @@
         // redesign
         if (!isOldReddit) {
             baseEl = document.querySelector(`#${postId}, .Comment.${postId}`);
+            // in post preview popups, the id will appear again but without the .scrollerItem class
+            if (document.querySelector(`.Post.${postId}:not(.scrollerItem)`)) {
+                baseEl = document.querySelector(`.Post.${postId}:not(.scrollerItem)`);
+            }
             if (baseEl) {
                 if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0) {
                     bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
@@ -347,12 +359,14 @@
                                 showOriginalComment(commentBodyElement, "comment", post.body);
                                 // remove loading status from comment
                                 loading.innerHTML = "";
+                                logging.info("Successfully loaded comment.");
                             } else if (post?.selftext) {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
                                 showOriginalComment(commentBodyElement, "post", post.selftext);
                                 // remove loading status from post
                                 loading.innerHTML = "";
+                                logging.info("Successfully loaded post.");
                             } else if (out?.data?.length === 0) {
                                 // data was returned empty
                                 loading.innerHTML = "not found";
@@ -408,6 +422,20 @@
                     el.innerText.substring(0, 23) == "Moderators remove posts" // include submissions removed by moderators
                 );
             });
+            // Edited submissions found using the Reddit API
+            const editedSubmissionSelectors = editedSubmissionIds.map((postId) => {
+                return [
+                    `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Submission page
+                    `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Listing view
+                    `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
+                ].join(", ");
+            });
+            if (editedSubmissionSelectors.length > 0) {
+                Array.from(document.querySelectorAll(editedSubmissionSelectors.join(", "))).forEach((el) => {
+                    el.classList.add("found");
+                    editedComments.push(el);
+                });
+            }
         }
         // old Reddit
         else {
@@ -433,16 +461,21 @@
         });
     }
 
+    /**
+     * If the script timeout is not already set, set it and
+     * run the findEditedComments in a second, otherwise do nothing.
+     */
+    function waitAndFindEditedComments() {
+        if (!scriptTimeout) {
+            scriptTimeout = setTimeout(findEditedComments, 1000);
+        }
+    }
+
     // check for new comments when you scroll
-    window.addEventListener(
-        "scroll",
-        function () {
-            if (!scriptTimeout) {
-                scriptTimeout = setTimeout(findEditedComments, 1000);
-            }
-        },
-        true
-    );
+    window.addEventListener("scroll", waitAndFindEditedComments, true);
+
+    // check for new comments when you click
+    document.body.addEventListener("click", waitAndFindEditedComments, true);
 
     // add additional styling, find edited comments, and set old reddit status on page load
     window.addEventListener("load", function () {
@@ -455,33 +488,30 @@
                 "beforeend",
                 "<style>p.og pre { font-family: monospace; background: #fff59d; padding: 6px; margin: 6px 0; color: black; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og > h3:first-child { font-weight: bold; margin-bottom: 0.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
             );
-            // check if on a submission page and it was edited
-            const match = window.location.href.match(/\/r\/([^\/]+)\/comments\/([A-Za-z0-9]{5,8})\//);
-            const submissionInnerEl = document.querySelector(
-                ".Post > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type"
-            );
-            if (submissionInnerEl && match) {
-                const subreddit = match[1];
-                const postId = match[2];
-                const apiUrl = `https://www.reddit.com/r/${subreddit}/api/info.json?id=t3_${postId}`;
-                logging.info(`Fetching info for submission ${postId} from ${apiUrl}`);
-                fetch(apiUrl)
+            // since the Reddit Redesign website does not show if a submission was edited,
+            // we will check the data in the Reddit JSON API for the information.
+            if (document.querySelector(".Post")) {
+                const pattern = new URLPattern(window.location.href);
+                const jsonUrl = `https://www.reddit.com${pattern.pathname}.json?${pattern.search}`;
+                logging.info(`Fetching additional info from ${jsonUrl}`);
+                fetch(jsonUrl)
                     .then(function (response) {
                         return response.json();
                     })
-                    .then(function (out) {
-                        logging.info("Response:", out);
+                    .then(function (data) {
+                        logging.info("Response:", data);
+                        const out = data?.length ? data[0] : data;
                         const children = out?.data?.children;
-                        if (children?.length > 0) {
-                            const postData = children[0].data;
-                            const edited = postData.edited;
-                            const created = postData.created;
-                            if (edited && edited > created) {
-                                createLink(submissionInnerEl);
-                                logging.info(`Submission ${postId} was edited`);
-                            } else {
-                                logging.info(`Submission ${postId} was not edited`);
-                            }
+                        if (children) {
+                            editedSubmissionIds = children
+                                .filter(function (post) {
+                                    return post.kind === "t3" && post.data.edited;
+                                })
+                                .map(function (post) {
+                                    return post.data.id;
+                                });
+                            logging.info("Edited submissions:", editedSubmissionIds);
+                            findEditedComments();
                         }
                     });
             }
