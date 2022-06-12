@@ -461,11 +461,12 @@
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
                 return (
-                    el.innerText.substring(0, 6) === "edited" || // include edited comments
-                    el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
-                    el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
-                    el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
-                    el.innerText.substring(0, 23) == "Moderators remove posts" // include submissions removed by moderators
+                    !el.children.length && // we only care about the element if it has no children
+                    (el.innerText.substring(0, 6) === "edited" || // include edited comments
+                        el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
+                        el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
+                        el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
+                        el.innerText.substring(0, 23) == "Moderators remove posts") // include submissions removed by moderators
                 );
             });
             // Edited submissions found using the Reddit API
