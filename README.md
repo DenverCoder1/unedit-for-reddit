@@ -69,6 +69,12 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+## Changes in 3.9.0
+
+-   Support for edited submission on Reddit Redesign on page of submission, list view, and popup view
+-   Displays how long ago submissions were edited on Redesign since Reddit doesn't display this information
+-   Minor code refactoring and added comments
+
 ### Changes in 3.8.0
 
 -   Added support for viewing deleted and moderator-removed submissions on Redesign and Old Reddit
