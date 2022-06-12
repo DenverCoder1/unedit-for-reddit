@@ -165,10 +165,9 @@
         // redesign
         if (!isOldReddit) {
             baseEl = document.querySelector(`#${postId}, .Comment.${postId}`);
-            // in post preview popups, the id will appear again but without the .scrollerItem class
-            if (document.querySelector(`.Post.${postId}:not(.scrollerItem)`)) {
-                baseEl = document.querySelector(`.Post.${postId}:not(.scrollerItem)`);
-            }
+            // in post preview popups, the id will appear again but in #overlayScrollContainer
+            const popupEl = document.querySelector(`#overlayScrollContainer .Post.${postId}`);
+            baseEl = popupEl ? popupEl : baseEl;
             if (baseEl) {
                 if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0) {
                     bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
@@ -258,8 +257,14 @@
                 origBodyEl.scrollIntoView({ behavior: "smooth" });
             }
         }, 500);
-        // on old reddit, if the comment is collapsed, expand it so the original comment is visible
-        if (isOldReddit) {
+        // Redesign
+        if (!isOldReddit) {
+            // Make sure collapsed submission previews are expanded to not hide the original comment.
+            commentBodyElement.parentElement.style.maxHeight = "unset";
+        }
+        // Old reddit
+        else {
+            // If the comment is collapsed, expand it so the original comment is visible
             expandComment(commentBodyElement);
         }
     }
@@ -449,7 +454,7 @@
         if (!isOldReddit) {
             // check for edited/deleted comments and deleted submissions
             selectors = [
-                ".Comment div:first-of-type span span:not(.found)", // Comments "edited..." or "Comment deleted/removed..."
+                ".Comment div:first-of-type span:not(.found)", // Comments "edited..." or "Comment deleted/removed..."
                 ".Post div div div:last-of-type div ~ div:last-of-type:not(.found)", // Submissions "It doesn't appear in any feeds..." message
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
@@ -469,7 +474,8 @@
                 const editedAt = submission.edited;
                 selectors = [
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:nth-of-type(3):not(.found)`, // Submission page
-                    `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Listing view
+                    `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
+                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:first-of-type:not(.found)`, // Profile/home listing view
                     `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
                 ];
                 Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
