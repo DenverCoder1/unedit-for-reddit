@@ -543,11 +543,18 @@
      * we will check the data in the Reddit JSON API for the information.
      */
     function checkForEditedSubmissions() {
+        // don't need to check if we're not on a submission page or list view
+        if (!document.querySelector(".Post, .ListingLayout-backgroundContainer")) {
+            return;
+        }
         const pattern = new URLPattern(window.location.href);
         const jsonUrl = `https://www.reddit.com${pattern.pathname}.json?${pattern.search}`;
         logging.info(`Fetching additional info from ${jsonUrl}`);
         fetch(jsonUrl)
             .then(function (response) {
+                if (!response.ok) {
+                    throw new Error(`${response.status} ${response.statusText}`);
+                }
                 return response.json();
             })
             .then(function (data) {
@@ -568,6 +575,9 @@
                     logging.info("Edited submissions:", editedSubmissions);
                     setTimeout(findEditedComments, 1000);
                 }
+            })
+            .catch(function (error) {
+                logging.error("Error fetching additional info:", error);
             });
     }
 
