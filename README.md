@@ -69,7 +69,7 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
-## Changes in 3.9.0
+### Changes in 3.9.0
 
 -   Support for edited submissions on Reddit Redesign on submission pages, list view, and popup view
 -   Displays how long ago submissions were edited on Redesign since Reddit doesn't display this information

@@ -547,8 +547,11 @@
         if (!document.querySelector(".Post, .ListingLayout-backgroundContainer")) {
             return;
         }
-        const pattern = new URLPattern(window.location.href);
-        const jsonUrl = `https://www.reddit.com${pattern.pathname}.json?${pattern.search}`;
+        const match = /^https?:.*?reddit.com(\/r\/[^?]+)?([?]?.*)$/.exec(window.location.href);
+        if (match?.length < 3) {
+            return;
+        }
+        const jsonUrl = `https://www.reddit.com${match[1]}.json${match[2]}`;
         logging.info(`Fetching additional info from ${jsonUrl}`);
         fetch(jsonUrl)
             .then(function (response) {
