@@ -41,9 +41,9 @@
      * List of submission ids of edited posts.
      * Used on Reddit redesign since the submissions are not marked as such.
      * This is set in the "load" event listener from the Reddit JSON API.
-     * @type {Array<string>}
+     * @type {Array<{id: string, edited: float}>}
      */
-    let editedSubmissionIds = [];
+    let editedSubmissions = [];
 
     /**
      * Showdown markdown converter
@@ -394,6 +394,38 @@
     }
 
     /**
+     * Convert unix timestamp in seconds to a relative time string (e.g. "2 hours ago").
+     * @param {number} timestamp A unix timestamp in seconds.
+     * @returns {string} A relative time string.
+     */
+    function getRelativeTime(timestamp) {
+        const time = new Date(timestamp * 1000);
+        const now = new Date();
+        const seconds = Math.round((now.getTime() - time.getTime()) / 1000);
+        const minutes = Math.round(seconds / 60);
+        const hours = Math.round(minutes / 60);
+        const days = Math.round(hours / 24);
+        const months = Math.round(days / 30.5);
+        const years = Math.round(days / 365);
+        if (years > 0 && months >= 12) {
+            return `${years} ${years === 1 ? "year" : "years"} ago`;
+        }
+        if (months > 0 && days >= 30) {
+            return `${months} ${months === 1 ? "month" : "months"} ago`;
+        }
+        if (days > 0 && hours >= 24) {
+            return `${days} ${days === 1 ? "day" : "days"} ago`;
+        }
+        if (hours > 0 && minutes >= 60) {
+            return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+        }
+        if (minutes > 0 && seconds >= 60) {
+            return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
+        }
+        return "just now";
+    }
+
+    /**
      * Locate comments and add links to each.
      */
     function findEditedComments() {
@@ -423,19 +455,25 @@
                 );
             });
             // Edited submissions found using the Reddit API
-            const editedSubmissionSelectors = editedSubmissionIds.map((postId) => {
-                return [
-                    `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Submission page
+            editedSubmissions.forEach((submission) => {
+                const postId = submission.id;
+                const editedAt = submission.edited;
+                selectors = [
+                    `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:nth-of-type(3):not(.found)`, // Submission page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Listing view
                     `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
-                ].join(", ");
-            });
-            if (editedSubmissionSelectors.length > 0) {
-                Array.from(document.querySelectorAll(editedSubmissionSelectors.join(", "))).forEach((el) => {
+                ];
+                Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
                     el.classList.add("found");
                     editedComments.push(el);
+                    // display when the post was edited
+                    const editedDateElement = document.createElement("span");
+                    editedDateElement.classList.add("edited-date");
+                    editedDateElement.style.fontStyle = "italic";
+                    editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
+                    el.parentElement.appendChild(editedDateElement);
                 });
-            }
+            });
         }
         // old Reddit
         else {
@@ -503,14 +541,17 @@
                         const out = data?.length ? data[0] : data;
                         const children = out?.data?.children;
                         if (children) {
-                            editedSubmissionIds = children
+                            editedSubmissions = children
                                 .filter(function (post) {
                                     return post.kind === "t3" && post.data.edited;
                                 })
                                 .map(function (post) {
-                                    return post.data.id;
+                                    return {
+                                        id: post.data.id,
+                                        edited: post.data.edited,
+                                    };
                                 });
-                            logging.info("Edited submissions:", editedSubmissionIds);
+                            logging.info("Edited submissions:", editedSubmissions);
                             findEditedComments();
                         }
                     });
