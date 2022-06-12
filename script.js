@@ -22,28 +22,36 @@
      * This will be set in the "load" event listener.
      * @type {boolean}
      */
-    var isOldReddit = false;
+    let isOldReddit = false;
 
     /**
      * Timeout to check for new edited comments on page.
      * This will be updated when scrolling.
-     * @type {number}
+     * @type {number?}
      */
-    var scriptTimeout = null;
+    let scriptTimeout = null;
 
     /**
      * The element that is currently requesting content
-     * @type {Element}
+     * @type {Element?}
      */
-    var currentLoading;
+    let currentLoading = null;
 
     /**
      * Showdown markdown converter
      * @type {showdown.Converter}
      */
-    var mdConverter = new showdown.Converter();
+    const mdConverter = new showdown.Converter();
 
-    var logging = {
+    /**
+     * Logging methods for displaying formatted logs in the console.
+     *
+     * logging.info("This is an info message");
+     * logging.warn("This is a warning message");
+     * logging.error("This is an error message");
+     * logging.table({a: 1, b: 2, c: 3});
+     */
+    const logging = {
         INFO: "info",
         WARN: "warn",
         ERROR: "error",
@@ -55,7 +63,7 @@
          * @param {...string} messages - Any number of messages to log
          */
         _format_log(level, ...messages) {
-            var logger = level in console ? console[level] : console.log;
+            const logger = level in console ? console[level] : console.log;
             logger(`%c[unedit-for-reddit] %c[${level.toUpperCase()}]`, "color: #00b6b6", "color: #888800", ...messages);
         },
 
@@ -98,10 +106,10 @@
      * @returns {string} The Reddit ID of the comment.
      */
     function getPostId(innerEl) {
-        var postId = "";
+        let postId = "";
         // redesign
         if (!isOldReddit) {
-            var post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
+            const post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
             postId = Array.from(post.classList).filter(function (el) {
                 return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
             })[0];
@@ -112,11 +120,11 @@
             postId = innerEl?.parentElement?.parentElement?.parentElement?.id.replace("thing_", "");
             // old reddit submission
             if (!postId && isInSubmission(innerEl)) {
-                var match = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//);
+                const match = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//);
                 postId = match ? match[1] : null;
                 // submission in list view
                 if (!postId) {
-                    var thing = innerEl.closest(".thing");
+                    const thing = innerEl.closest(".thing");
                     postId = thing?.id.replace("thing_", "");
                 }
             }
@@ -136,7 +144,7 @@
      * @returns {Element} The container element of the comment or submission body.
      */
     function getPostBodyElement(postId) {
-        var bodyEl = null,
+        let bodyEl = null,
             baseEl = null;
         // redesign
         if (!isOldReddit) {
@@ -181,7 +189,7 @@
      * @returns {boolean} Whether or not the element is in a selftext submission
      */
     function isInSubmission(innerEl) {
-        var selectors = [
+        const selectors = [
             "a.thumbnail", // old reddit on profile page or list view
             "div[data-url]", // old reddit on submission page
             ".Post", // redesign
@@ -195,7 +203,7 @@
      * @returns {boolean} Whether or not the element is within the window
      */
     function isInViewport(element) {
-        var rect = element.getBoundingClientRect();
+        const rect = element.getBoundingClientRect();
         return (
             rect.top >= 0 &&
             rect.left >= 0 &&
@@ -212,22 +220,22 @@
      */
     function showOriginalComment(commentBodyElement, postType, originalBody) {
         // create paragraph element
-        var origBody = document.createElement("p");
-        origBody.className = "og";
+        const origBodyEl = document.createElement("p");
+        origBodyEl.className = "og";
         // set text
-        origBody.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + originalBody);
+        origBodyEl.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + originalBody);
         // paragraph styling
-        origBody.style.opacity = 0.96;
-        origBody.style.fontSize = "14px";
-        origBody.style.background = "#fff59d";
-        origBody.style.padding = "16px";
-        origBody.style.color = "black";
-        origBody.style.lineHeight = "20px";
-        commentBodyElement.appendChild(origBody);
+        origBodyEl.style.opacity = 0.96;
+        origBodyEl.style.fontSize = "14px";
+        origBodyEl.style.background = "#fff59d";
+        origBodyEl.style.padding = "16px";
+        origBodyEl.style.color = "black";
+        origBodyEl.style.lineHeight = "20px";
+        commentBodyElement.appendChild(origBodyEl);
         // scroll into view
         setTimeout(function () {
-            if (!isInViewport(origBody)) {
-                origBody.scrollIntoView({ behavior: "smooth" });
+            if (!isInViewport(origBodyEl)) {
+                origBodyEl.scrollIntoView({ behavior: "smooth" });
             }
         }, 500);
         // on old reddit, if the comment is collapsed, expand it so the original comment is visible
@@ -241,7 +249,7 @@
      * @param {Element} innerEl An element inside the comment.
      */
     function expandComment(innerEl) {
-        var collapsedComment = innerEl.closest(".collapsed");
+        const collapsedComment = innerEl.closest(".collapsed");
         if (collapsedComment) {
             collapsedComment.classList.remove("collapsed");
             collapsedComment.classList.add("noncollapsed");
@@ -258,7 +266,7 @@
             return;
         }
         // create link to "Show orginal"
-        var showLinkEl = document.createElement("a");
+        const showLinkEl = document.createElement("a");
         showLinkEl.innerText = "Show original";
         showLinkEl.className = innerEl.className + " showOriginal";
         showLinkEl.style.textDecoration = "underline";
@@ -267,7 +275,7 @@
         innerEl.parentElement.appendChild(showLinkEl);
         innerEl.classList.add("match");
         // find id of selected comment or submission
-        var postId = getPostId(showLinkEl);
+        const postId = getPostId(showLinkEl);
         showLinkEl.alt = `View original post for ID ${postId}`;
         if (!postId) {
             showLinkEl.style.color = "#dd2c00";
@@ -281,7 +289,7 @@
                     return;
                 }
                 // create url for getting comment/post from pushshift api
-                var idURL = isInSubmission(this)
+                const idURL = isInSubmission(this)
                     ? "https://api.pushshift.io/reddit/search/submission/?ids=" +
                       postId +
                       "&sort=desc&sort_type=created_utc&fields=selftext,author,id"
@@ -289,8 +297,8 @@
                       postId +
                       "&sort=desc&sort_type=created_utc&fields=body,author,id,link_id";
                 // create url for getting author comments/posts from pushshift api
-                var author = this.parentElement.querySelector("a[href*=user]")?.innerText;
-                var authorURL = isInSubmission(this)
+                const author = this.parentElement.querySelector("a[href*=user]")?.innerText;
+                const authorURL = isInSubmission(this)
                     ? "https://api.pushshift.io/reddit/search/submission/?author=" +
                       author +
                       "&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id"
@@ -320,15 +328,15 @@
                     .then((responses) => {
                         responses.forEach((out) => {
                             // locate the comment that was being loaded
-                            var loading = currentLoading;
+                            const loading = currentLoading;
                             // exit if already found
                             if (loading.innerHTML === "") {
                                 return;
                             }
                             // locate comment body
-                            var commentBodyElement = getPostBodyElement(postId);
-                            var post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            logging.info("Response", { author, id: postId, post, data: out?.data });
+                            const commentBodyElement = getPostBodyElement(postId);
+                            const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
+                            logging.info("Response:", { author, id: postId, post, data: out?.data });
                             // check that comment was fetched and body element exists
                             if (!commentBodyElement) {
                                 // the comment body element was not found
@@ -380,7 +388,7 @@
             scriptTimeout = null;
         }
         // list elements to check for edited or deleted status
-        var selectors = [],
+        let selectors = [],
             elementsToCheck = [],
             editedComments = [];
         // redesign
