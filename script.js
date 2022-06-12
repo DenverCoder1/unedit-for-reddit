@@ -46,6 +46,14 @@
     let editedSubmissions = [];
 
     /**
+     * The current URL that is being viewed.
+     * On Redesign, this can change without the user leaving page,
+     * so we want to look for new edited submissions if it changes.
+     * @type {string}
+     */
+    let currentURL = window.location.href;
+
+    /**
      * Showdown markdown converter
      * @type {showdown.Converter}
      */
@@ -439,6 +447,7 @@
             editedComments = [];
         // redesign
         if (!isOldReddit) {
+            // check for edited/deleted comments and deleted submissions
             selectors = [
                 ".Comment div:first-of-type span span:not(.found)", // Comments "edited..." or "Comment deleted/removed..."
                 ".Post div div div:last-of-type div ~ div:last-of-type:not(.found)", // Submissions "It doesn't appear in any feeds..." message
@@ -474,6 +483,13 @@
                     el.parentElement.appendChild(editedDateElement);
                 });
             });
+            // If the url has changed, check for edited submissions again
+            // This is an async fetch that will check for edited submissions again when it is done
+            if (currentURL !== window.location.href) {
+                logging.info(`URL changed from ${currentURL} to ${window.location.href}`);
+                currentURL = window.location.href;
+                checkForEditedSubmissions();
+            }
         }
         // old Reddit
         else {
@@ -509,6 +525,41 @@
         }
     }
 
+    /**
+     * Check for edited submissions using the Reddit JSON API.
+     *
+     * Since the Reddit Redesign website does not show if a submission was edited,
+     * we will check the data in the Reddit JSON API for the information.
+     */
+    function checkForEditedSubmissions() {
+        const pattern = new URLPattern(window.location.href);
+        const jsonUrl = `https://www.reddit.com${pattern.pathname}.json?${pattern.search}`;
+        logging.info(`Fetching additional info from ${jsonUrl}`);
+        fetch(jsonUrl)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                logging.info("Response:", data);
+                const out = data?.length ? data[0] : data;
+                const children = out?.data?.children;
+                if (children) {
+                    editedSubmissions = children
+                        .filter(function (post) {
+                            return post.kind === "t3" && post.data.edited;
+                        })
+                        .map(function (post) {
+                            return {
+                                id: post.data.id,
+                                edited: post.data.edited,
+                            };
+                        });
+                    logging.info("Edited submissions:", editedSubmissions);
+                    setTimeout(findEditedComments, 1000);
+                }
+            });
+    }
+
     // check for new comments when you scroll
     window.addEventListener("scroll", waitAndFindEditedComments, true);
 
@@ -526,36 +577,8 @@
                 "beforeend",
                 "<style>p.og pre { font-family: monospace; background: #fff59d; padding: 6px; margin: 6px 0; color: black; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og > h3:first-child { font-weight: bold; margin-bottom: 0.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
             );
-            // since the Reddit Redesign website does not show if a submission was edited,
-            // we will check the data in the Reddit JSON API for the information.
-            if (document.querySelector(".Post")) {
-                const pattern = new URLPattern(window.location.href);
-                const jsonUrl = `https://www.reddit.com${pattern.pathname}.json?${pattern.search}`;
-                logging.info(`Fetching additional info from ${jsonUrl}`);
-                fetch(jsonUrl)
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (data) {
-                        logging.info("Response:", data);
-                        const out = data?.length ? data[0] : data;
-                        const children = out?.data?.children;
-                        if (children) {
-                            editedSubmissions = children
-                                .filter(function (post) {
-                                    return post.kind === "t3" && post.data.edited;
-                                })
-                                .map(function (post) {
-                                    return {
-                                        id: post.data.id,
-                                        edited: post.data.edited,
-                                    };
-                                });
-                            logging.info("Edited submissions:", editedSubmissions);
-                            findEditedComments();
-                        }
-                    });
-            }
+            // check for edited submissions
+            checkForEditedSubmissions();
         }
         // find edited comments
         findEditedComments();
