@@ -448,12 +448,41 @@
     window.addEventListener("load", function () {
         // determine if reddit is old or redesign
         isOldReddit = /old\.reddit/.test(window.location.href) || !!document.querySelector("#header-img");
-        // fix styling of created paragraphs in new reddit
+        // Reddit redesign
         if (!isOldReddit) {
+            // fix styling of created paragraphs in new reddit
             document.head.insertAdjacentHTML(
                 "beforeend",
                 "<style>p.og pre { font-family: monospace; background: #fff59d; padding: 6px; margin: 6px 0; color: black; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og > h3:first-child { font-weight: bold; margin-bottom: 0.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
             );
+            // check if on a submission page and it was edited
+            const match = window.location.href.match(/\/r\/([^\/]+)\/comments\/([A-Za-z0-9]{5,8})\//);
+            const submissionInnerEl = document.querySelector(
+                ".Post > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type"
+            );
+            if (submissionInnerEl && match) {
+                const subreddit = match[1];
+                const postId = match[2];
+                const apiUrl = `https://www.reddit.com/r/${subreddit}/api/info.json?id=t3_${postId}`;
+                logging.info(`Fetching info for submission ${postId} from ${apiUrl}`);
+                fetch(apiUrl)
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (out) {
+                        logging.info("Response:", out);
+                        const children = out?.data?.children;
+                        if (children?.length > 0) {
+                            const postData = children[0].data;
+                            const edited = postData.edited;
+                            const created = postData.created;
+                            if (edited && edited > created) {
+                                createLink(submissionInnerEl);
+                                logging.info(`Submission ${postId} was edited`);
+                            } else {
+                                logging.info(`Submission ${postId} was not edited`);
+                            }
+                        }
                     });
             }
         }
