@@ -10,7 +10,7 @@
 </p>
 <p>
   <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
-    <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=000&label=greasy%20fork&query=%24.version&url=https%3A%2F%2Fgreasyfork.org%2Fscripts%2F407466.json&logo=greasyforkpng" alt="Greasy Fork version" /></a>
+    <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=000&label=greasy%20fork&query=%24.version&url=https%3A%2F%2Fgreasyfork.org%2Fscripts%2F407466.json&prefix=v&logo=greasyforkpng" alt="Greasy Fork version" /></a>
 <!--   <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
     <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=000&label=users&query=%24.total_installs&url=https%3A%2F%2Fgreasyfork.org%2Fscripts%2F407466.json&logo=greasyforkpng" alt="Greasy Fork users" /></a> -->
   <a href="https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka">
