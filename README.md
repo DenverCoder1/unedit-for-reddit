@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.9.2
+
+-   Fixed edited submissions when not using Reddit Enhancement Suite (RES is not a requirement).
+
 ### Changes in 3.9.1
 
 -   Support edited submissions in Firefox by using regex instead of `URLPattern`.
