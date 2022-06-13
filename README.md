@@ -47,16 +47,7 @@ Install from the [Chrome Web Store](https://chrome.google.com/webstore/detail/un
 
 Install from [Mozilla Add-ons](https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/), or alternatively, follow these steps to build and install from the source:
 
-To sign the extension for use in Firefox, you will need credentials from https://addons.mozilla.org/en-US/developers/addon/api/key/. The generated extension will appear as a `.xpi` file in `./web-ext-artifacts`. This file can be opened in Firefox to install the add-on.
-
-```bash
-# Install the web-ext CLI
-npm install -g web-ext
-# web-ext only supports manifest v2 as of now
-mv manifest.json manifest-v3.json && mv manifest-v2.json manifest.json
-# Sign and generate the add-on using credentials
-web-ext sign --api-key=user:YOUR_USER_ID --api-secret=YOUR_SECRET
-```
+To sign the extension for use in Firefox, you will need credentials from https://addons.mozilla.org/en-US/developers/addon/api/key/. Create a copy of `.env.example` named `.env` and replace the placeholders with your API key and secret. Install `web-ext` with `npm install -g web-ext` and sign the extension with `make sign-firefox`. The generated extension will appear as a `.xpi` file in `./web-ext-artifacts`. This file can be opened in Firefox to install the add-on.
 
 ## Known issues
 
