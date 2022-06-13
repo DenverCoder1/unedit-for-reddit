@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.9.3
+
+-   Fix bug where the submission edited time appears more than once.
+
 ### Changes in 3.9.2
 
 -   Fixed edited submissions when not using Reddit Enhancement Suite (RES is not a requirement).
