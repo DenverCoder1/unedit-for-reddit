@@ -1,8 +1,11 @@
+# Generated files
 web-ext-artifacts/
 .web-extension-id
-
+dist/
 *.zip
 
-.vscode
+# Environment
+.env
 
-dist
+# IDE
+.vscode
