@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.9.1
+
+-   Support edited submissions in Firefox by using regex instead of `URLPattern`.
+
 ### Changes in 3.9.0
 
 -   Support for edited submissions on Reddit Redesign on submission pages, list view, and popup view
