@@ -367,13 +367,13 @@
                                 // the comment body element was not found
                                 loading.innerHTML = "body element not found";
                                 logging.error("Body element not found:", out);
-                            } else if (post?.body) {
+                            } else if (typeof post?.body === "string") {
                                 // create new paragraph containing the body of the original comment
                                 showOriginalComment(commentBodyElement, "comment", post.body);
                                 // remove loading status from comment
                                 loading.innerHTML = "";
                                 logging.info("Successfully loaded comment.");
-                            } else if (post?.selftext) {
+                            } else if (typeof post?.selftext === "string") {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
                                 showOriginalComment(commentBodyElement, "post", post.selftext);
