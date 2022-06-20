@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Unedit and Undelete for Reddit",
     "description": "Creates links next to edited and deleted Reddit posts to show the original from before it was edited/removed.",
-    "version": "3.9.3",
+    "version": "3.9.4",
     "content_scripts": [
         {
             "run_at": "document_idle",

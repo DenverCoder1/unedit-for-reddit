@@ -68,6 +68,13 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.9.4
+
+-   Added the author and created time at the bottom of the original comment. This helps to find out who posted a deleted comment.
+-   Fix showing of empty self-text of a post when it was empty and then edited to have text.
+-   Updates to the color of links in the original post on Redesign to be easier to read.
+-   Prevents the original post from being displayed more than once if "show original" links are clicked multiple times.
+
 ### Changes in 3.9.3
 
 -   Fix bug where the submission edited time appears more than once.
