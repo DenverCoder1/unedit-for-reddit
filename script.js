@@ -268,7 +268,9 @@
         // append to original comment
         origBodyEl.appendChild(document.createElement("hr"));
         origBodyEl.appendChild(detailsEl);
-        commentBodyElement.appendChild(origBodyEl);
+        if (commentBodyElement.lastElementChild.className !== 'og') {
+            commentBodyElement.appendChild(origBodyEl);
+        }
         // scroll into view
         setTimeout(function () {
             if (!isInViewport(origBodyEl)) {
