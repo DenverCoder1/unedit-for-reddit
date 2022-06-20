@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.9.3
+// @version      3.9.4
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        *://*reddit.com/*
@@ -235,9 +235,10 @@
      * Create a new paragraph containing the body of the original comment/post.
      * @param {Element} commentBodyElement The container element of the comment/post body.
      * @param {string} postType The type of post - "comment" or "post" (submission)
-     * @param {string} originalBody The body of the original comment/post.
+     * @param {object} postData The archived data of the original comment/post.
      */
-    function showOriginalComment(commentBodyElement, postType, originalBody) {
+    function showOriginalComment(commentBodyElement, postType, postData) {
+        const originalBody = typeof postData?.body === "string" ? postData.body : postData?.selftext;
         // create paragraph element
         const origBodyEl = document.createElement("p");
         origBodyEl.className = "og";
@@ -250,6 +251,23 @@
         origBodyEl.style.padding = "16px";
         origBodyEl.style.color = "black";
         origBodyEl.style.lineHeight = "20px";
+        // author and date details
+        const detailsEl = document.createElement("div");
+        detailsEl.style.fontSize = "12px";
+        detailsEl.appendChild(document.createTextNode("Posted by "));
+        const authorEl = document.createElement("a");
+        authorEl.href = `/user/${postData.author}`;
+        authorEl.innerText = postData.author;
+        detailsEl.appendChild(authorEl);
+        detailsEl.appendChild(document.createTextNode(" · "));
+        const dateEl = document.createElement("a");
+        dateEl.href = postData.permalink;
+        dateEl.title = new Date(postData.created_utc * 1000).toString();
+        dateEl.innerText = getRelativeTime(postData.created_utc);
+        detailsEl.appendChild(dateEl);
+        // append to original comment
+        origBodyEl.appendChild(document.createElement("hr"));
+        origBodyEl.appendChild(detailsEl);
         commentBodyElement.appendChild(origBodyEl);
         // scroll into view
         setTimeout(function () {
@@ -317,19 +335,19 @@
                 const idURL = isInSubmission(this)
                     ? "https://api.pushshift.io/reddit/search/submission/?ids=" +
                       postId +
-                      "&sort=desc&sort_type=created_utc&fields=selftext,author,id"
+                      "&sort=desc&sort_type=created_utc&fields=selftext,author,id,created_utc,permalink"
                     : "https://api.pushshift.io/reddit/search/comment/?ids=" +
                       postId +
-                      "&sort=desc&sort_type=created_utc&fields=body,author,id,link_id";
+                      "&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink";
                 // create url for getting author comments/posts from pushshift api
                 const author = this.parentElement.querySelector("a[href*=user]")?.innerText;
                 const authorURL = isInSubmission(this)
                     ? "https://api.pushshift.io/reddit/search/submission/?author=" +
                       author +
-                      "&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id"
+                      "&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id,created_utc,permalink"
                     : "https://api.pushshift.io/reddit/search/comment/?author=" +
                       author +
-                      "&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id";
+                      "&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink";
 
                 // set loading status
                 currentLoading = this;
@@ -369,14 +387,14 @@
                                 logging.error("Body element not found:", out);
                             } else if (typeof post?.body === "string") {
                                 // create new paragraph containing the body of the original comment
-                                showOriginalComment(commentBodyElement, "comment", post.body);
+                                showOriginalComment(commentBodyElement, "comment", post);
                                 // remove loading status from comment
                                 loading.innerHTML = "";
                                 logging.info("Successfully loaded comment.");
                             } else if (typeof post?.selftext === "string") {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
-                                showOriginalComment(commentBodyElement, "post", post.selftext);
+                                showOriginalComment(commentBodyElement, "post", post);
                                 // remove loading status from post
                                 loading.innerHTML = "";
                                 logging.info("Successfully loaded post.");
@@ -599,7 +617,49 @@
             // fix styling of created paragraphs in new reddit
             document.head.insertAdjacentHTML(
                 "beforeend",
-                "<style>p.og pre { font-family: monospace; background: #fff59d; padding: 6px; margin: 6px 0; color: black; } p.og h1 { font-size: 2em; } p.og h2 { font-size: 1.5em; } p.og > h3:first-child { font-weight: bold; margin-bottom: 0.5em; } p.og h3 { font-size: 1.17em; } p.og h4 { font-size: 1em; } p.og h5 { font-size: 0.83em; } p.og h6 { font-size: 0.67em; } p.og a { color: lightblue; text-decoration: underline; }</style>"
+                `<style>
+                    p.og pre {
+                        font-family: monospace;
+                        background: #fff59d;
+                        padding: 6px;
+                        margin: 6px 0;
+                        color: black;
+                    }
+                    p.og h1 {
+                        font-size: 2em;
+                    }
+                    p.og h2 {
+                        font-size: 1.5em;
+                    }
+                    p.og>h3:first-child {
+                        font-weight: bold;
+                        margin-bottom: 0.5em;
+                    }
+                    p.og h3 {
+                        font-size: 1.17em;
+                    }
+                    p.og h4 {
+                        font-size: 1em;
+                    }
+                    p.og h5 {
+                        font-size: 0.83em;
+                    }
+                    p.og h6 {
+                        font-size: 0.67em;
+                    }
+                    p.og a {
+                        color: #3e88a0;
+                        text-decoration: underline;
+                    }
+                    p.og summary {
+                        cursor: pointer;
+                    }
+                    p.og hr {
+                        border: none;
+                        border-bottom: 1px solid #666;
+                        background: transparent;
+                    }
+                </style>`
             );
             // check for edited submissions
             checkForEditedSubmissions();
