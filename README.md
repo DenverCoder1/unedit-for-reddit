@@ -1,10 +1,10 @@
-# Unedit and Undelete for Reddit
+<p align="center"><img src="https://raw.githubusercontent.com/DenverCoder1/Unedit-for-Reddit/3.9.4/images/logo128.png" /></center>
 
-<p>
+<h1 align="center">Unedit and Undelete for Reddit</h1>
+
+<p align="center">
   <a href="https://discord.gg/fPrdqh3Zfu">
     <img src="https://img.shields.io/discord/819650821314052106?color=7289DA&logo=discord&logoColor=white" alt="Dev Pro Tips Discussion & Support Server" /></a>
-  <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/LICENSE">
-    <img src="https://custom-icon-badges.herokuapp.com/github/license/DenverCoder1/Unedit-for-Reddit?logo=law" alt="License MIT" /></a>
   <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
     <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=github" alt="Issues" /></a>
   <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
