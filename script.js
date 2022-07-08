@@ -1,12 +1,11 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.9.4
+// @version      3.9.5
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
-// @match        *://*reddit.com/*
-// @include      https://*.reddit.com/*
-// @include      https://reddit.com/*
+// @match        https://reddit.com/*
+// @match        https://*.reddit.com/*
 // @grant        none
 // @require      https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
 // @license      MIT

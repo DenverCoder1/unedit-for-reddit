@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.9.5
+
+-   Updated @​match for better compatibility
+
 ### Changes in 3.9.4
 
 -   Added the author and created time at the bottom of the original comment. This helps to find out who posted a deleted comment.
@@ -124,11 +128,11 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.5
 
 -   Added compatibility with Old Reddit links without "old.reddit" in the URL
--   Added additional @includes for more compatibility
+-   Added additional @​includes for more compatibility
 
 ### Changes in 3.4
 
--   Fixed @match for more compatibility
+-   Fixed @​match for more compatibility
 
 ### Changes in 3.3
 
