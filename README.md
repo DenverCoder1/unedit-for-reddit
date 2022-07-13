@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.9.6
+
+-   Added color override for compatibility with RES Night Mode
+
 ### Changes in 3.9.5
 
 -   Updated @​match for better compatibility
