@@ -675,7 +675,7 @@
             document.head.insertAdjacentHTML(
                 "beforeend",
                 `<style>
-                    div.md p.og {
+                    div p.og {
                         background: rgb(255, 245, 157) !important;
                         color: black !important;
                         opacity: 0.96;
@@ -693,11 +693,11 @@
                         padding: 1px !important;
                     }
 
-                    div.md p.og a {
+                    div p.og a {
                         color: #0079d3 !important;
                     }
                     
-                    div.md p.og a:visited {
+                    div p.og a:visited {
                         color: #469ad8!important;
                     }
 
