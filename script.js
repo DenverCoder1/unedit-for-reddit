@@ -612,12 +612,23 @@
             document.head.insertAdjacentHTML(
                 "beforeend",
                 `<style>
+                    p.og {
+                        background: rgb(255, 245, 157) !important;
+                        color: black !important;
+                        opacity: 0.96;
+                        font-size: 14px;
+                        padding: 16px;
+                        line-height: 20px;
+                    }
                     p.og pre {
                         font-family: monospace;
                         background: #fff59d;
                         padding: 6px;
                         margin: 6px 0;
                         color: black;
+                    }
+                    p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og p, p.og div {
+                        margin: 1em 0 0.5em 0;
                     }
                     p.og h1 {
                         font-size: 2em;
@@ -664,7 +675,7 @@
             document.head.insertAdjacentHTML(
                 "beforeend",
                 `<style>
-                    p.og {
+                    div.md p.og {
                         background: rgb(255, 245, 157) !important;
                         color: black !important;
                         opacity: 0.96;
@@ -673,12 +684,21 @@
                         line-height: 20px;
                     }
 
-                    p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og pre, p.og div {
+                    p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og pre, p.og :not(pre)>code, p.og div {
                         color: black !important;
                     }
+                    
+                    p.og :not(pre)>code {
+                        background: #d7d085 !important;
+                        padding: 1px !important;
+                    }
 
-                    p.og a {
+                    div.md p.og a {
                         color: #0079d3 !important;
+                    }
+                    
+                    div.md p.og a:visited {
+                        color: #469ad8!important;
                     }
 
                     /* Override for RES Night mode */
