@@ -686,6 +686,7 @@
 
                     p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og pre, p.og :not(pre)>code, p.og div {
                         color: black !important;
+                        margin: 0.4em 0 0.2em 0;
                     }
                     
                     p.og :not(pre)>code {
