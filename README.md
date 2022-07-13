@@ -62,7 +62,7 @@ The following are known limitations that cannot be fixed:
 
 ### Changes in 3.9.6
 
--   Added color override for compatibility with RES Night Mode
+-   Added color override for compatibility with RES Night Mode and custom CSS themes on Old Reddit
 
 ### Changes in 3.9.5
 
