@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.9.5
+// @version      3.9.6
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        https://reddit.com/*
@@ -243,13 +243,6 @@
         origBodyEl.className = "og";
         // set text
         origBodyEl.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + originalBody);
-        // paragraph styling
-        origBodyEl.style.opacity = 0.96;
-        origBodyEl.style.fontSize = "14px";
-        origBodyEl.style.background = "#fff59d";
-        origBodyEl.style.padding = "16px";
-        origBodyEl.style.color = "black";
-        origBodyEl.style.lineHeight = "20px";
         // author and date details
         const detailsEl = document.createElement("div");
         detailsEl.style.fontSize = "12px";
@@ -664,6 +657,28 @@
             );
             // check for edited submissions
             checkForEditedSubmissions();
+        }
+        // Old Reddit
+        else {
+            // fix styling of created paragraphs in old reddit
+            document.head.insertAdjacentHTML(
+                "beforeend",
+                `<style>
+                    p.og {
+                        background: rgb(255, 245, 157) !important;
+                        color: black !important;
+                        opacity: 0.96;
+                        font-size: 14px;
+                        padding: 16px;
+                        line-height: 20px;
+                    }
+
+                    /* Override for RES Night mode */
+                    .res-nightmode .entry.res-selected .md-container > .md p.og, .res-nightmode .entry.res-selected .md-container > .md p.og p {
+                        color: black !important;
+                    }
+                </style>`
+          );
         }
         // find edited comments
         findEditedComments();
