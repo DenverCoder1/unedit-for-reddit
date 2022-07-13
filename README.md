@@ -64,6 +64,7 @@ The following are known limitations that cannot be fixed:
 
 -   Added color overrides for compatibility with RES Night Mode and more custom CSS themes on Old Reddit
 -   Added extra spacing around paragraphs and headings in the original comment
+-   Improved styling of codeblocks in the original comment on Reddit Redesign
 
 ### Changes in 3.9.5
 
