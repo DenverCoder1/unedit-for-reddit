@@ -679,11 +679,11 @@
                         background: transparent;
                     }
                     p.og table {
-                            border: 2px solid black;
+                        border: 2px solid black;
                     }
                     p.og table td, p.og table th {
-                            border: 1px solid black;
-                            padding: 4px;
+                        border: 1px solid black;
+                        padding: 4px;
                     }
                 </style>`
             );
@@ -719,14 +719,14 @@
                         color: #469ad8!important;
                     }
                     p.og table {
-                            border: 2px solid black;
+                        border: 2px solid black;
                     }
                     p.og table td, p.og table th {
-                            border: 1px solid black;
-                            padding: 4px;
+                        border: 1px solid black;
+                        padding: 4px;
                     }
                     p.og table tr {
-                            background: none !important;
+                        background: none !important;
                     }
                     /* Override for RES Night mode */
                     .res-nightmode .entry.res-selected .md-container > .md p.og,
