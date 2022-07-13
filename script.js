@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.9.5
+// @version      3.10.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        https://reddit.com/*
@@ -56,7 +56,7 @@
      * Showdown markdown converter
      * @type {showdown.Converter}
      */
-    const mdConverter = new showdown.Converter();
+    const mdConverter = new showdown.Converter({ tables: true });
 
     /**
      * Logging methods for displaying formatted logs in the console.
@@ -237,19 +237,18 @@
      * @param {object} postData The archived data of the original comment/post.
      */
     function showOriginalComment(commentBodyElement, postType, postData) {
-        const originalBody = typeof postData?.body === "string" ? postData.body : postData?.selftext;
+        let originalBody = typeof postData?.body === "string" ? postData.body : postData?.selftext;
         // create paragraph element
         const origBodyEl = document.createElement("p");
         origBodyEl.className = "og";
+        // fix Reddit tables to have at least two dashes per cell in the alignment row
+        originalBody = originalBody.replace(/(?<=^\s*|\|\s*)(:?)-(:?)(?=\s*\|)/g, function (match, p1, p2) {
+            // p1 is the first colon or empty, p2 is the second colon or empty
+            // if there is at least one colon, replace the dash with two dashes
+            return p1 || p2 ? `${p1}--${p2}` : match;
+        });
         // set text
         origBodyEl.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + originalBody);
-        // paragraph styling
-        origBodyEl.style.opacity = 0.96;
-        origBodyEl.style.fontSize = "14px";
-        origBodyEl.style.background = "#fff59d";
-        origBodyEl.style.padding = "16px";
-        origBodyEl.style.color = "black";
-        origBodyEl.style.lineHeight = "20px";
         // author and date details
         const detailsEl = document.createElement("div");
         detailsEl.style.fontSize = "12px";
@@ -267,7 +266,7 @@
         // append to original comment
         origBodyEl.appendChild(document.createElement("hr"));
         origBodyEl.appendChild(detailsEl);
-        if (commentBodyElement.lastElementChild.className !== 'og') {
+        if (commentBodyElement.lastElementChild.className !== "og") {
             commentBodyElement.appendChild(origBodyEl);
         }
         // scroll into view
@@ -619,12 +618,23 @@
             document.head.insertAdjacentHTML(
                 "beforeend",
                 `<style>
+                    p.og {
+                        background: rgb(255, 245, 157) !important;
+                        color: black !important;
+                        opacity: 0.96;
+                        font-size: 14px;
+                        padding: 16px;
+                        line-height: 20px;
+                    }
                     p.og pre {
                         font-family: monospace;
                         background: #fff59d;
                         padding: 6px;
                         margin: 6px 0;
                         color: black;
+                    }
+                    p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og p, p.og div {
+                        margin: 1em 0 0.5em 0;
                     }
                     p.og h1 {
                         font-size: 2em;
@@ -652,6 +662,14 @@
                         color: #3e88a0;
                         text-decoration: underline;
                     }
+                    p.og pre {
+                        background: #d7d085 !important;
+                    }
+                    p.og :not(pre)>code {
+                        font-family: monospace;
+                        background: #d7d085 !important;
+                        padding: 1px !important;
+                    }
                     p.og summary {
                         cursor: pointer;
                     }
@@ -660,10 +678,63 @@
                         border-bottom: 1px solid #666;
                         background: transparent;
                     }
+                    p.og table {
+                        border: 2px solid black;
+                    }
+                    p.og table td, p.og table th {
+                        border: 1px solid black;
+                        padding: 4px;
+                    }
                 </style>`
             );
             // check for edited submissions
             checkForEditedSubmissions();
+        }
+        // Old Reddit
+        else {
+            // fix styling of created paragraphs in old reddit
+            document.head.insertAdjacentHTML(
+                "beforeend",
+                `<style>
+                    div p.og {
+                        background: rgb(255, 245, 157) !important;
+                        color: black !important;
+                        opacity: 0.96;
+                        font-size: 14px;
+                        padding: 16px;
+                        line-height: 20px;
+                    }
+                    p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og pre, p.og :not(pre)>code, p.og div {
+                        color: black !important;
+                        margin: 0.4em 0 0.2em 0;
+                    }
+                    p.og :not(pre)>code {
+                        background: #d7d085 !important;
+                        padding: 1px !important;
+                    }
+                    div p.og a {
+                        color: #0079d3 !important;
+                    }
+                    div p.og a:visited {
+                        color: #469ad8!important;
+                    }
+                    p.og table {
+                        border: 2px solid black;
+                    }
+                    p.og table td, p.og table th {
+                        border: 1px solid black;
+                        padding: 4px;
+                    }
+                    p.og table tr {
+                        background: none !important;
+                    }
+                    /* Override for RES Night mode */
+                    .res-nightmode .entry.res-selected .md-container > .md p.og,
+                    .res-nightmode .entry.res-selected .md-container > .md p.og p {
+                        color: black !important;
+                    }
+                </style>`
+            );
         }
         // find edited comments
         findEditedComments();
