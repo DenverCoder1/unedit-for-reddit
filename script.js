@@ -674,7 +674,8 @@
                     }
 
                     /* Override for RES Night mode */
-                    .res-nightmode .entry.res-selected .md-container > .md p.og, .res-nightmode .entry.res-selected .md-container > .md p.og p {
+                    .res-nightmode .entry.res-selected .md-container > .md p.og,
+                    .res-nightmode .entry.res-selected .md-container > .md p.og p {
                         color: black !important;
                     }
                 </style>`
