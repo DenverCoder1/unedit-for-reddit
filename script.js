@@ -673,6 +673,14 @@
                         line-height: 20px;
                     }
 
+                    p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og pre, p.og div {
+                        color: black !important;
+                    }
+
+                    p.og a {
+                        color: #0079d3 !important;
+                    }
+
                     /* Override for RES Night mode */
                     .res-nightmode .entry.res-selected .md-container > .md p.og,
                     .res-nightmode .entry.res-selected .md-container > .md p.og p {
