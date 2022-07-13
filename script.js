@@ -656,6 +656,14 @@
                         color: #3e88a0;
                         text-decoration: underline;
                     }
+                    p.og pre {
+                        background: #d7d085 !important;
+                    }
+                    p.og :not(pre)>code {
+                        font-family: monospace;
+                        background: #d7d085 !important;
+                        padding: 1px !important;
+                    }
                     p.og summary {
                         cursor: pointer;
                     }
@@ -686,7 +694,7 @@
 
                     p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og pre, p.og :not(pre)>code, p.og div {
                         color: black !important;
-                        margin: 0.4em 0 0.2em 0;
+						margin: 0.4em 0 0.2em 0;
                     }
                     
                     p.og :not(pre)>code {
