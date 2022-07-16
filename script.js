@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.10.0
+// @version      3.11.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        https://reddit.com/*
@@ -56,7 +56,14 @@
      * Showdown markdown converter
      * @type {showdown.Converter}
      */
-    const mdConverter = new showdown.Converter({ tables: true });
+    const mdConverter = new showdown.Converter({
+        tables: true,
+        simplifiedAutoLink: true,
+        literalMidWordUnderscores: true,
+        strikethrough: true,
+        ghCodeBlocks: true,
+        disableForced4SpacesIndentedSublists: true,
+    });
 
     /**
      * Logging methods for displaying formatted logs in the console.
@@ -231,24 +238,40 @@
     }
 
     /**
+     * Generate HTML from markdown for a comment or submission.
+     * @param {string} postType The type of post - "comment" or "post" (submission)
+     * @param {string} original The markdown to convert
+     * @returns {string} The HTML of the markdown
+     */
+    function redditPostToHTML(postType, original) {
+        // fix Reddit tables to have at least two dashes per cell in the alignment row
+        let body = original.replace(/(?<=^\s*|\|\s*)(:?)-(:?)(?=\s*\|[-|\s:]*$)/g, "$1--$2");
+        // convert superscripts in the form "^(some text)" or "^text" to <sup>text</sup>
+        body = body.replace(/\^\((.+?)\)/g, "<sup>$1</sup>").replace(/\^(\S+)/g, "<sup>$1</sup>");
+        // convert user and subreddit mentions to links (can be /u/, /r/, u/, or r/)
+        body = body.replace(/(?<=^|[^\w\/])(\/?)([ur]\/\w+)/g, "[$1$2](/$2)");
+        // convert markdown to HTML
+        let html = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + body);
+        // convert Reddit spoilertext
+        return html.replace(
+            /(?<=^|\s|>)&gt;!(.+?)!&lt;(?=$|\s|<)/g,
+            "<span class='md-spoiler-text' title='Reveal spoiler'>$1</span>"
+        );
+    }
+
+    /**
      * Create a new paragraph containing the body of the original comment/post.
      * @param {Element} commentBodyElement The container element of the comment/post body.
      * @param {string} postType The type of post - "comment" or "post" (submission)
      * @param {object} postData The archived data of the original comment/post.
      */
     function showOriginalComment(commentBodyElement, postType, postData) {
-        let originalBody = typeof postData?.body === "string" ? postData.body : postData?.selftext;
+        const originalBody = typeof postData?.body === "string" ? postData.body : postData?.selftext;
         // create paragraph element
         const origBodyEl = document.createElement("p");
         origBodyEl.className = "og";
-        // fix Reddit tables to have at least two dashes per cell in the alignment row
-        originalBody = originalBody.replace(/(?<=^\s*|\|\s*)(:?)-(:?)(?=\s*\|)/g, function (match, p1, p2) {
-            // p1 is the first colon or empty, p2 is the second colon or empty
-            // if there is at least one colon, replace the dash with two dashes
-            return p1 || p2 ? `${p1}--${p2}` : match;
-        });
         // set text
-        origBodyEl.innerHTML = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + originalBody);
+        origBodyEl.innerHTML = redditPostToHTML(postType, originalBody);
         // author and date details
         const detailsEl = document.createElement("div");
         detailsEl.style.fontSize = "12px";
@@ -685,7 +708,35 @@
                         border: 1px solid black;
                         padding: 4px;
                     }
+                    p.og sup {
+                        position: relative;
+                        font-size: .7em;
+                        line-height: .7em;
+                        top: -0.4em;
+                    }
+                    span.md-spoiler-text {
+                        background: #545452;
+                        border-radius: 2px;
+                        transition: background 1s ease-out;
+                        cursor: pointer;
+                        color: #545452;
+                    }
+                    span.md-spoiler-text.revealed {
+                        background: rgba(84,84,82,.1);
+                        color: inherit;
+                    }
                 </style>`
+            );
+            // listen for spoilertext in original body to be revealed
+            window.addEventListener(
+                "click",
+                function (e) {
+                    const spoiler = e.target.closest("span.md-spoiler-text");
+                    if (spoiler) {
+                        spoiler.classList.add("revealed");
+                    }
+                },
+                false
             );
             // check for edited submissions
             checkForEditedSubmissions();
