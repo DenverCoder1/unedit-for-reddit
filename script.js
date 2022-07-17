@@ -736,6 +736,27 @@
                         background: rgba(84,84,82,.1);
                         color: inherit;
                     }
+                    p.og em {
+                        font-style: italic;
+                    }
+                    p.og strong {
+                        font-weight: bold;
+                    }
+                    p.og blockquote {
+                        border-left: 4px solid #c5c1ad;
+                        padding: 0 8px;
+                        margin-left: 5px;
+                        margin-top: 0.35714285714285715em;
+                        margin-bottom: 0.35714285714285715em;
+                    }
+                    p.og ol {
+                        list-style: auto;
+                        margin-left: 1.5em;
+                    }
+                    p.og ul {
+                        list-style: initial;
+                        margin-left: 1.5em;
+                    }
                 </style>`
             );
             // listen for spoilertext in original body to be revealed
