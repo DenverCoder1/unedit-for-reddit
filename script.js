@@ -245,16 +245,27 @@
      */
     function redditPostToHTML(postType, original) {
         // fix Reddit tables to have at least two dashes per cell in the alignment row
-        let body = original.replace(/(?<=^\s*|\|\s*)(:?)-(:?)(?=\s*\|[-|\s:]*$)/g, "$1--$2");
+        let body = original.replace(/(?<=^\s*|\|\s*)(:?)-(:?)(?=\s*\|[-|\s:]*$)/gm, "$1--$2");
         // convert superscripts in the form "^(some text)" or "^text" to <sup>text</sup>
-        body = body.replace(/\^\((.+?)\)/g, "<sup>$1</sup>").replace(/\^(\S+)/g, "<sup>$1</sup>");
+        const multiwordSuperscriptRegex = /\^\((.+?)\)/gm;
+        while (multiwordSuperscriptRegex.test(body)) {
+            body = body.replace(multiwordSuperscriptRegex, "<sup>$1</sup>");
+        }
+        const superscriptRegex = /\^(\S+)/gm;
+        while (superscriptRegex.test(body)) {
+            body = body.replace(superscriptRegex, "<sup>$1</sup>");
+        }
         // convert user and subreddit mentions to links (can be /u/, /r/, u/, or r/)
-        body = body.replace(/(?<=^|[^\w\/])(\/?)([ur]\/\w+)/g, "[$1$2](/$2)");
+        body = body.replace(/(?<=^|[^\w\/])(\/?)([ur]\/\w+)/gm, "[$1$2](/$2)");
+        // add spaces after '>' to keep blockquotes (if it has '>!' ignore since that is spoilertext)
+        body = body.replace(/^((?:&gt;|>)+)(?=[^!\s])/gm, function (match, p1) {
+            return p1.replace(/&gt;/g, ">") + " ";
+        });
         // convert markdown to HTML
         let html = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + body);
         // convert Reddit spoilertext
         return html.replace(
-            /(?<=^|\s|>)&gt;!(.+?)!&lt;(?=$|\s|<)/g,
+            /(?<=^|\s|>)&gt;!(.+?)!&lt;(?=$|\s|<)/gm,
             "<span class='md-spoiler-text' title='Reveal spoiler'>$1</span>"
         );
     }
