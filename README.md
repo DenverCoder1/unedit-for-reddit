@@ -63,9 +63,10 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.11.0
 
 -   Fix markdown conversion to include strikethrough, Github-style code blocks, indented sublists without 4 spaces, and underscores in the middle of a word
--   Added links where username and subreddit mentions appear in the original post
+-   Added links wherever username and subreddit mentions appear in the original post
 -   Added support for hiding spoiler text in the original post
 -   Added support for superscripts using `^` in the original post
+-   Fixed the search results page on Reddit Redesign to only show the link once.
 
 ### Changes in 3.10.0
 
