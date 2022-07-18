@@ -264,10 +264,12 @@
         // convert markdown to HTML
         let html = mdConverter.makeHtml("\n\n### Original " + postType + ":\n\n" + body);
         // convert Reddit spoilertext
-        return html.replace(
+        html = html.replace(
             /(?<=^|\s|>)&gt;!(.+?)!&lt;(?=$|\s|<)/gm,
             "<span class='md-spoiler-text' title='Reveal spoiler'>$1</span>"
         );
+        // replace &#x200B; with a zero-width space
+        return html.replace(/&amp;#x200B;/g, "\u200B");
     }
 
     /**
@@ -763,9 +765,14 @@
             window.addEventListener(
                 "click",
                 function (e) {
+                    /**
+                     * @type {HTMLSpanElement}
+                     */
                     const spoiler = e.target.closest("span.md-spoiler-text");
                     if (spoiler) {
                         spoiler.classList.add("revealed");
+                        spoiler.removeAttribute("title");
+                        spoiler.style.cursor = "auto";
                     }
                 },
                 false
@@ -810,6 +817,12 @@
                     }
                     p.og table tr {
                         background: none !important;
+                    }
+                    p.og strong {
+                        font-weight: 600;
+                    }
+                    p.og em {
+                        font-style: italic;
                     }
                     /* Override for RES Night mode */
                     .res-nightmode .entry.res-selected .md-container > .md p.og,
