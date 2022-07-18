@@ -60,12 +60,19 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.11.0
+
+-   Fix markdown conversion to include strikethrough, Github-style code blocks, indented sublists without 4 spaces, and underscores in the middle of a word
+-   Added links where username and subreddit mentions appear in the original post
+-   Added support for hiding spoiler text in the original post
+-   Added support for superscripts using `^` in the original post
+
 ### Changes in 3.10.0
 
 -   Added color overrides for compatibility with RES Night Mode and more custom CSS themes on Old Reddit
 -   Added extra spacing around paragraphs and headings in the original comment
--   Improved styling of codeblocks in the original comment on Reddit Redesign
--   Added support for displaying tables in original comment
+-   Improved styling of code blocks in the original comment on Reddit Redesign
+-   Added support for displaying tables in the original comment
 
 ### Changes in 3.9.5
 
