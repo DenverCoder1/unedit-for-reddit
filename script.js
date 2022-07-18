@@ -525,6 +525,7 @@
             });
             // Edited submissions found using the Reddit API
             editedSubmissions.forEach((submission) => {
+                let found = false;
                 const postId = submission.id;
                 const editedAt = submission.edited;
                 selectors = [
@@ -535,13 +536,16 @@
                 ];
                 Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
                     el.classList.add("found");
-                    editedComments.push(el);
-                    // display when the post was edited
-                    const editedDateElement = document.createElement("span");
-                    editedDateElement.classList.add("edited-date");
-                    editedDateElement.style.fontStyle = "italic";
-                    editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
-                    el.parentElement.appendChild(editedDateElement);
+                    if (!found) {
+                        found = true;
+                        editedComments.push(el);
+                        // display when the post was edited
+                        const editedDateElement = document.createElement("span");
+                        editedDateElement.classList.add("edited-date");
+                        editedDateElement.style.fontStyle = "italic";
+                        editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
+                        el.parentElement.appendChild(editedDateElement);
+                    }
                 });
             });
             // If the url has changed, check for edited submissions again
