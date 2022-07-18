@@ -67,6 +67,7 @@ The following are known limitations that cannot be fixed:
 -   Added support for hiding spoiler text in the original post
 -   Added support for superscripts using `^` in the original post
 -   Fixed the search results page on Reddit Redesign to only show the link once.
+-   Fixed fetching edited submissions sometimes failing.
 
 ### Changes in 3.10.0
 
