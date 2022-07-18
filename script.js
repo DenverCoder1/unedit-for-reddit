@@ -607,11 +607,9 @@
         if (!document.querySelector(".Post, .ListingLayout-backgroundContainer")) {
             return;
         }
-        const match = /^https?:.*?reddit.com(\/r\/[^?]+)?([?]?.*)$/.exec(window.location.href);
-        if (match?.length < 3) {
-            return;
-        }
-        const jsonUrl = `https://www.reddit.com${match[1]}.json${match[2]}`;
+        // append .json to the page URL but before the ?
+        const [url, query] = window.location.href.split("?");
+        const jsonUrl = `${url}.json` + (query ? `?${query}` : "");
         logging.info(`Fetching additional info from ${jsonUrl}`);
         fetch(jsonUrl)
             .then(function (response) {
@@ -640,7 +638,7 @@
                 }
             })
             .catch(function (error) {
-                logging.error("Error fetching additional info:", error);
+                logging.error(`Error fetching additional info from ${jsonUrl}`, error);
             });
     }
 
