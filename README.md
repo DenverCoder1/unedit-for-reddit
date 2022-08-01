@@ -60,14 +60,20 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.12.0
+
+-   Added support to show the author of posts that were not edited but the author no longer exists
+-   Added support for edited submissions on comment context pages
+-   Ensure the original post fills the available space on Reddit Redesign
+
 ### Changes in 3.11.0
 
 -   Fix markdown conversion to include strikethrough, Github-style code blocks, indented sublists without 4 spaces, and underscores in the middle of a word
 -   Added links wherever username and subreddit mentions appear in the original post
 -   Added support for hiding spoiler text in the original post
 -   Added support for superscripts using `^` in the original post
--   Fixed the search results page on Reddit Redesign to only show the link once.
--   Fixed fetching edited submissions sometimes failing.
+-   Fixed the search results page on Reddit Redesign to only show the link once
+-   Fixed fetching edited submissions sometimes failing
 
 ### Changes in 3.10.0
 
@@ -83,21 +89,21 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.9.4
 
 -   Added the author and created time at the bottom of the original comment. This helps to find out who posted a deleted comment.
--   Fix showing of empty self-text of a post when it was empty and then edited to have text.
--   Updates to the color of links in the original post on Redesign to be easier to read.
--   Prevents the original post from being displayed more than once if "show original" links are clicked multiple times.
+-   Fix showing of empty self-text of a post when it was empty and then edited to have text
+-   Updates to the color of links in the original post on Redesign to be easier to read
+-   Prevents the original post from being displayed more than once if "show original" links are clicked multiple times
 
 ### Changes in 3.9.3
 
--   Fix bug where the submission edited time appears more than once.
+-   Fix bug where the submission edited time appears more than once
 
 ### Changes in 3.9.2
 
--   Fixed edited submissions when not using Reddit Enhancement Suite (RES is not a requirement).
+-   Fixed edited submissions when not using Reddit Enhancement Suite (RES is not a requirement)
 
 ### Changes in 3.9.1
 
--   Support edited submissions in Firefox by using regex instead of `URLPattern`.
+-   Support edited submissions in Firefox by using regex instead of `URLPattern`
 
 ### Changes in 3.9.0
 
