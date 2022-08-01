@@ -277,14 +277,15 @@
      * @param {Element} commentBodyElement The container element of the comment/post body.
      * @param {string} postType The type of post - "comment" or "post" (submission)
      * @param {object} postData The archived data of the original comment/post.
+     * @param {Boolean} includeBody Whether or not to include the body of the original comment/post.
      */
-    function showOriginalComment(commentBodyElement, postType, postData) {
+    function showOriginalComment(commentBodyElement, postType, postData, includeBody) {
         const originalBody = typeof postData?.body === "string" ? postData.body : postData?.selftext;
         // create paragraph element
         const origBodyEl = document.createElement("p");
         origBodyEl.className = "og";
         // set text
-        origBodyEl.innerHTML = redditPostToHTML(postType, originalBody);
+        origBodyEl.innerHTML = includeBody ? redditPostToHTML(postType, originalBody) : "";
         // author and date details
         const detailsEl = document.createElement("div");
         detailsEl.style.fontSize = "12px";
@@ -299,10 +300,18 @@
         dateEl.title = new Date(postData.created_utc * 1000).toString();
         dateEl.innerText = getRelativeTime(postData.created_utc);
         detailsEl.appendChild(dateEl);
+        // append horizontal rule if the original body is shown
+        if (includeBody) {
+            origBodyEl.appendChild(document.createElement("hr"));
+        }
         // append to original comment
-        origBodyEl.appendChild(document.createElement("hr"));
         origBodyEl.appendChild(detailsEl);
-        if (commentBodyElement.lastElementChild.className !== "og") {
+        const existingOg = commentBodyElement.querySelector(".og");
+        if (existingOg && includeBody) {
+            // if there is an existing paragraph and this element contains the body, replace it
+            existingOg.replaceWith(origBodyEl);
+        } else if (!existingOg) {
+            // if there is no existing paragraph, append it
             commentBodyElement.appendChild(origBodyEl);
         }
         // scroll into view
@@ -340,13 +349,14 @@
      * @param {Element} innerEl An element inside the comment or post to create a link for.
      */
     function createLink(innerEl) {
-        // if there is already a link, don't create another
-        if (innerEl.parentElement.querySelector("a.showOriginal")) {
+        // if there is already a link, don't create another unless the other was a show author link
+        if (innerEl.parentElement.querySelector("a.showOriginal:not(.showAuthorOnly)")) {
             return;
         }
-        // create link to "Show orginal"
+        // create link to "Show orginal" or "Show author"
+        const showAuthor = innerEl.classList.contains("showAuthorOnly");
         const showLinkEl = document.createElement("a");
-        showLinkEl.innerText = "Show original";
+        showLinkEl.innerText = showAuthor ? "Show author" : "Show original";
         showLinkEl.className = innerEl.className + " showOriginal";
         showLinkEl.style.textDecoration = "underline";
         showLinkEl.style.cursor = "pointer";
@@ -416,6 +426,7 @@
                             const commentBodyElement = getPostBodyElement(postId);
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
                             logging.info("Response:", { author, id: postId, post, data: out?.data });
+                            const includeBody = !loading.classList.contains("showAuthorOnly");
                             // check that comment was fetched and body element exists
                             if (!commentBodyElement) {
                                 // the comment body element was not found
@@ -423,14 +434,14 @@
                                 logging.error("Body element not found:", out);
                             } else if (typeof post?.body === "string") {
                                 // create new paragraph containing the body of the original comment
-                                showOriginalComment(commentBodyElement, "comment", post);
+                                showOriginalComment(commentBodyElement, "comment", post, includeBody);
                                 // remove loading status from comment
                                 loading.innerHTML = "";
                                 logging.info("Successfully loaded comment.");
                             } else if (typeof post?.selftext === "string") {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
-                                showOriginalComment(commentBodyElement, "post", post);
+                                showOriginalComment(commentBodyElement, "post", post, includeBody);
                                 // remove loading status from post
                                 loading.innerHTML = "";
                                 logging.info("Successfully loaded post.");
@@ -514,20 +525,31 @@
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
-                return (
-                    !el.children.length && // we only care about the element if it has no children
-                    (el.innerText.substring(0, 6) === "edited" || // include edited comments
-                        el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
-                        el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
-                        el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
-                        el.innerText.substring(0, 23) == "Moderators remove posts") // include submissions removed by moderators
-                );
+                // we only care about the element if it has no children
+                if (el.children.length) {
+                    return false;
+                }
+                const isEditedOrRemoved =
+                    el.innerText.substring(0, 6) === "edited" || // include edited comments
+                    el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
+                    el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
+                    el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
+                    el.innerText.substring(0, 23) === "Moderators remove posts"; // include submissions removed by moderators
+                const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
+                // if the element has a deleted author, make a link to only show the deleted author
+                if (isDeletedAuthor) {
+                    el.classList.add("showAuthorOnly");
+                }
+                // keep element if it is edited or removed or if it has a deleted author
+                return isEditedOrRemoved || isDeletedAuthor;
             });
             // Edited submissions found using the Reddit API
             editedSubmissions.forEach((submission) => {
                 let found = false;
                 const postId = submission.id;
                 const editedAt = submission.edited;
+                const deletedAuthor = submission.deletedAuthor;
+                const deletedPost = submission.deletedPost;
                 selectors = [
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Submission page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
@@ -541,12 +563,17 @@
                     if (!found) {
                         found = true;
                         editedComments.push(el);
-                        // display when the post was edited
-                        const editedDateElement = document.createElement("span");
-                        editedDateElement.classList.add("edited-date");
-                        editedDateElement.style.fontStyle = "italic";
-                        editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
-                        el.parentElement.appendChild(editedDateElement);
+                        if (editedAt) {
+                            // display when the post was edited
+                            const editedDateElement = document.createElement("span");
+                            editedDateElement.classList.add("edited-date");
+                            editedDateElement.style.fontStyle = "italic";
+                            editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
+                            el.parentElement.appendChild(editedDateElement);
+                        } else if (deletedAuthor && !deletedPost) {
+                            // if the post was not edited, make a link to only show the deleted author
+                            el.classList.add("showAuthorOnly");
+                        }
                     }
                 });
             });
@@ -562,18 +589,27 @@
         else {
             selectors = [
                 ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
-                ".entry p.tagline em:not(.found)", // Comment "[deleted]" author
+                ".entry p.tagline em:not(.found), .entry p.tagline span:first-of-type:not(.found)", // Comment "[deleted]" author
                 "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
                 "div[data-url] .usertext-body em:not(.found)", // Submission "[removed]" body
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
-                return (
+                const isEditedRemovedOrDeletedAuthor =
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
-                    el.innerText === "[removed]" // include comments or submissions removed by moderator
-                );
+                    el.innerText === "[removed]"; // include comments or submissions removed by moderator
+                // if the element is a deleted author and not edited or removed, only show the deleted author
+                if (
+                    el.innerText === "[deleted]" &&
+                    el.tagName.toUpperCase() === "SPAN" && // tag name is span (not em as it appears for deleted comments)
+                    ["[deleted]", "[removed]"].indexOf(el.closest(".entry")?.querySelector(".md")?.innerText) === -1 // content of post is not deleted or removed
+                ) {
+                    el.classList.add("showAuthorOnly");
+                }
+                // keep element if it is edited or removed or if it has a deleted author
+                return isEditedRemovedOrDeletedAuthor;
             });
         }
         // create links
@@ -625,12 +661,14 @@
                 if (children) {
                     editedSubmissions = children
                         .filter(function (post) {
-                            return post.kind === "t3" && post.data.edited;
+                            return post.kind === "t3" && (post.data.edited || post.data.author === "[deleted]");
                         })
                         .map(function (post) {
                             return {
                                 id: post.data.id,
                                 edited: post.data.edited,
+                                deletedAuthor: post.data.author === "[deleted]",
+                                deletedPost: post.data.selftext === "[deleted]" || post.data.selftext === "[removed]",
                             };
                         });
                     logging.info("Edited submissions:", editedSubmissions);
@@ -665,6 +703,7 @@
                         font-size: 14px;
                         padding: 16px;
                         line-height: 20px;
+                        width: -webkit-fill-available;
                     }
                     p.og pre {
                         font-family: monospace;
