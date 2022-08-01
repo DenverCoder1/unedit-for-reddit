@@ -198,7 +198,8 @@
             if (!bodyEl) {
                 bodyEl =
                     document.querySelector("div[data-url] .entry form .md") ||
-                    document.querySelector("div[data-url] .entry form .usertext-body");
+                    document.querySelector("div[data-url] .entry form .usertext-body") ||
+                    document.querySelector("div[data-url] .entry .top-matter");
             }
             // link view
             if (!bodyEl) {
