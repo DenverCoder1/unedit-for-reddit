@@ -353,13 +353,10 @@
         if (innerEl.parentElement.querySelector("a.showOriginal:not(.showAuthorOnly)")) {
             return;
         }
-        // create link to "Show orginal"
+        // create link to "Show orginal" or "Show author"
+        const showAuthor = innerEl.classList.contains("showAuthorOnly");
         const showLinkEl = document.createElement("a");
-        showLinkEl.innerText = "Show original";
-        if (innerEl.classList.contains("showAuthorOnly")) {
-            showLinkEl.classList.add("showAuthorOnly");
-            showLinkEl.innerText = "Show author";
-        }
+        showLinkEl.innerText = showAuthor ? "Show author" : "Show original";
         showLinkEl.className = innerEl.className + " showOriginal";
         showLinkEl.style.textDecoration = "underline";
         showLinkEl.style.cursor = "pointer";
@@ -551,6 +548,8 @@
                 let found = false;
                 const postId = submission.id;
                 const editedAt = submission.edited;
+                const deletedAuthor = submission.deletedAuthor;
+                const deletedPost = submission.deletedPost;
                 selectors = [
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Submission page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
@@ -571,7 +570,7 @@
                             editedDateElement.style.fontStyle = "italic";
                             editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
                             el.parentElement.appendChild(editedDateElement);
-                        } else {
+                        } else if (deletedAuthor && !deletedPost) {
                             // if the post was not edited, make a link to only show the deleted author
                             el.classList.add("showAuthorOnly");
                         }
@@ -602,7 +601,11 @@
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
                     el.innerText === "[removed]"; // include comments or submissions removed by moderator
                 // if the element is a deleted author and not edited or removed, only show the deleted author
-                if (el.innerText === "[deleted]" && /^SPAN$/i.test(el.tagName)) {
+                if (
+                    el.innerText === "[deleted]" &&
+                    el.tagName.toUpperCase() === "SPAN" && // tag name is span (not em as it appears for deleted comments)
+                    ["[deleted]", "[removed]"].indexOf(el.closest(".entry")?.querySelector(".md")?.innerText) === -1 // content of post is not deleted or removed
+                ) {
                     el.classList.add("showAuthorOnly");
                 }
                 // keep element if it is edited or removed or if it has a deleted author
@@ -664,6 +667,8 @@
                             return {
                                 id: post.data.id,
                                 edited: post.data.edited,
+                                deletedAuthor: post.data.author === "[deleted]",
+                                deletedPost: post.data.selftext === "[deleted]" || post.data.selftext === "[removed]",
                             };
                         });
                     logging.info("Edited submissions:", editedSubmissions);
