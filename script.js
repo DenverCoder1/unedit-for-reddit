@@ -179,6 +179,9 @@
                     bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
                 } else if (isInSubmission(baseEl) && baseEl?.firstElementChild?.lastElementChild) {
                     bodyEl = baseEl.firstElementChild.lastElementChild;
+                    if (bodyEl.childNodes.length === 1) {
+                        bodyEl = bodyEl.firstElementChild;
+                    }
                 } else {
                     bodyEl = baseEl;
                 }
@@ -553,6 +556,7 @@
                 const deletedPost = submission.deletedPost;
                 selectors = [
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Submission page
+                    `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Comment context page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
                     `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:first-of-type:not(.found)`, // Profile/home listing view
                     `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
