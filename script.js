@@ -704,6 +704,8 @@
                         font-size: 14px;
                         padding: 16px;
                         line-height: 20px;
+                        width: auto;
+                        width: -moz-available;
                         width: -webkit-fill-available;
                     }
                     p.og pre {
