@@ -563,24 +563,27 @@
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Submission page
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Comment context page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
-                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:not([data-adclicklocation]):first-of-type:not(.found)`, // Profile/home listing view
+                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:not([data-adclicklocation]):first-of-type:not(.found)`, // Profile/home/classic listing view
+                    `.Post.t3_${postId} > div:first-of-type > div[data-click-id="background"] > div:first-of-type > div[data-click-id="body"] > div[data-adclicklocation="top_bar"]:not(.found)`, // Compact listing view
                     `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) div[data-adclicklocation="top_bar"]:not(.found)`, // Profile/home listing view
                     `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
                 ];
                 Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
                     // add found class so that it won't be checked again in the future
-                    el.classList.add("found", "editedSubmission");
+                    el.classList.add("found");
                     // if this is the first time we've found this post, add it to the list of posts to add the link to
                     if (!found) {
                         found = true;
                         editedComments.push(el);
                         if (editedAt) {
-                            // display when the post was edited
-                            const editedDateElement = document.createElement("span");
-                            editedDateElement.classList.add("edited-date");
-                            editedDateElement.style.fontStyle = "italic";
-                            editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
-                            el.parentElement.appendChild(editedDateElement);
+                            if (!el.parentElement.querySelector(".edited-date")) {
+                                // display when the post was edited
+                                const editedDateElement = document.createElement("span");
+                                editedDateElement.classList.add("edited-date");
+                                editedDateElement.style.fontStyle = "italic";
+                                editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
+                                el.parentElement.appendChild(editedDateElement);
+                            }
                         } else if (deletedAuthor && !deletedPost) {
                             // if the post was not edited, make a link to only show the deleted author
                             el.classList.add("showAuthorOnly");
