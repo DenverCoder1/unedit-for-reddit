@@ -818,7 +818,7 @@
                         list-style: initial;
                         margin-left: 1.5em;
                     }
-                    span.edited-date {
+                    span.edited-date, a.showOriginal {
                         font-size: small;
                     }
                 </style>`

@@ -63,6 +63,7 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.13.0
 
 -   Added support for Classic view and Compact view on Reddit Redesign.
+-   Adjusted the font size of links on the search results page to be smaller (Reddit Redesign).
 
 ### Changes in 3.12.1
 
