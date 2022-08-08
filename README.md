@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.13.0
+
+-   Added support for Classic view and Compact view on Reddit Redesign.
+
 ### Changes in 3.12.1
 
 -   Hide link on edited submissions in Classic View since it does not display well (Reddit Redesign)

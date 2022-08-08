@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.12.1
+// @version      3.13.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        https://reddit.com/*
@@ -178,9 +178,14 @@
                 if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0) {
                     bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
                 } else if (isInSubmission(baseEl) && baseEl?.firstElementChild?.lastElementChild) {
-                    bodyEl = baseEl.firstElementChild.lastElementChild;
-                    if (bodyEl.childNodes.length === 1) {
-                        bodyEl = bodyEl.firstElementChild;
+                    const classicBodyEl = baseEl.querySelector(`div[data-adclicklocation="background"]`);
+                    if (classicBodyEl) {
+                        bodyEl = classicBodyEl;
+                    } else {
+                        bodyEl = baseEl.firstElementChild.lastElementChild;
+                        if (bodyEl.childNodes.length === 1) {
+                            bodyEl = bodyEl.firstElementChild;
+                        }
                     }
                 } else {
                     bodyEl = baseEl;
@@ -558,7 +563,9 @@
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Submission page
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Comment context page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
-                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:first-of-type:not([data-adclicklocation="title"]):not(.found)`, // Profile/home listing view
+                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:not([data-adclicklocation]):first-of-type:not(.found)`, // Profile/home/classic listing view
+                    `.Post.t3_${postId} > div:first-of-type > div[data-click-id="background"] > div:first-of-type > div[data-click-id="body"] > div[data-adclicklocation="top_bar"]:not(.found)`, // Compact listing view
+                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) div[data-adclicklocation="top_bar"]:not(.found)`, // Profile/home listing view
                     `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
                 ];
                 Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
@@ -569,12 +576,14 @@
                         found = true;
                         editedComments.push(el);
                         if (editedAt) {
-                            // display when the post was edited
-                            const editedDateElement = document.createElement("span");
-                            editedDateElement.classList.add("edited-date");
-                            editedDateElement.style.fontStyle = "italic";
-                            editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
-                            el.parentElement.appendChild(editedDateElement);
+                            if (!el.parentElement.querySelector(".edited-date")) {
+                                // display when the post was edited
+                                const editedDateElement = document.createElement("span");
+                                editedDateElement.classList.add("edited-date");
+                                editedDateElement.style.fontStyle = "italic";
+                                editedDateElement.innerText = ` \u00b7 edited ${getRelativeTime(editedAt)}`; // middle-dot = \u00b7
+                                el.parentElement.appendChild(editedDateElement);
+                            }
                         } else if (deletedAuthor && !deletedPost) {
                             // if the post was not edited, make a link to only show the deleted author
                             el.classList.add("showAuthorOnly");
@@ -808,6 +817,9 @@
                     p.og ul {
                         list-style: initial;
                         margin-left: 1.5em;
+                    }
+                    span.edited-date {
+                        font-size: small;
                     }
                 </style>`
             );
