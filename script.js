@@ -178,9 +178,14 @@
                 if (baseEl.getElementsByClassName("RichTextJSON-root").length > 0) {
                     bodyEl = baseEl.getElementsByClassName("RichTextJSON-root")[0];
                 } else if (isInSubmission(baseEl) && baseEl?.firstElementChild?.lastElementChild) {
-                    bodyEl = baseEl.firstElementChild.lastElementChild;
-                    if (bodyEl.childNodes.length === 1) {
-                        bodyEl = bodyEl.firstElementChild;
+                    const classicBodyEl = baseEl.querySelector(`div[data-adclicklocation="background"]`);
+                    if (classicBodyEl) {
+                        bodyEl = classicBodyEl;
+                    } else {
+                        bodyEl = baseEl.firstElementChild.lastElementChild;
+                        if (bodyEl.childNodes.length === 1) {
+                            bodyEl = bodyEl.firstElementChild;
+                        }
                     }
                 } else {
                     bodyEl = baseEl;
@@ -558,12 +563,13 @@
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Submission page
                     `#t3_${postId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > div:first-of-type > div:first-of-type > span:first-of-type:not(.found)`, // Comment context page
                     `#t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:first-of-type > div:first-of-type:not(.found)`, // Subreddit listing view
-                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:first-of-type:not([data-adclicklocation="title"]):not(.found)`, // Profile/home listing view
+                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) > div:not([data-adclicklocation]):first-of-type:not(.found)`, // Profile/home listing view
+                    `.Post.t3_${postId} > div:last-of-type[data-click-id] > div:first-of-type > div:nth-of-type(2) div[data-adclicklocation="top_bar"]:not(.found)`, // Profile/home listing view
                     `.Post.t3_${postId}:not(.scrollerItem) > div:first-of-type > div:nth-of-type(2) > div:nth-of-type(2) > div:first-of-type > div:first-of-type:not(.found)`, // Preview popup
                 ];
                 Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
                     // add found class so that it won't be checked again in the future
-                    el.classList.add("found");
+                    el.classList.add("found", "editedSubmission");
                     // if this is the first time we've found this post, add it to the list of posts to add the link to
                     if (!found) {
                         found = true;
@@ -808,6 +814,9 @@
                     p.og ul {
                         list-style: initial;
                         margin-left: 1.5em;
+                    }
+                    span.edited-date {
+                        font-size: small;
                     }
                 </style>`
             );
