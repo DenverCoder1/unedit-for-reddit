@@ -570,7 +570,7 @@
                 ];
                 Array.from(document.querySelectorAll(selectors.join(", "))).forEach((el) => {
                     // add found class so that it won't be checked again in the future
-                    el.classList.add("found", "editedSubmission");
+                    el.classList.add("found");
                     // if this is the first time we've found this post, add it to the list of posts to add the link to
                     if (!found) {
                         found = true;
