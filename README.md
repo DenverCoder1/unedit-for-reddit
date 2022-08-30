@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.14.0
+
+-   Added support for `[unavailable]` comments and submissions (occurs when the user has been blocked by the author).
+
 ### Changes in 3.13.0
 
 -   Added support for Classic view and Compact view on Reddit Redesign.
