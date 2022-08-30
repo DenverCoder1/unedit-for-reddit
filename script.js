@@ -547,18 +547,24 @@
                 if (el.children.length) {
                     return false;
                 }
-                // The only message we care about in a P element right now is "[unavailable]"
+                // the only message we care about in a P element right now is "[unavailable]"
                 if (el.tagName === "P" && el.innerText !== "[unavailable]") {
                     return false;
                 }
+                // include "[unavailable]" comments (blocked by user) if from a deleted user
+                const isUnavailable =
+                    el.innerText === "[unavailable]" &&
+                    el?.parentElement?.parentElement?.parentElement
+                        ?.querySelector("div")
+                        ?.innerText?.includes("[deleted]");
                 const isEditedOrRemoved =
                     el.innerText.substring(0, 6) === "edited" || // include edited comments
                     el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
                     el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
                     el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
                     el.innerText.substring(0, 23) === "Moderators remove posts" || // include submissions removed by moderators
-                    el.innerText.substring(0, 29) === "Sorry, this post is no longer" || // include unavailable submissions (blocked by user)
-                    el.innerText === "[unavailable]"; // include unavailable comments (blocked by user)
+                    isUnavailable || // include unavailable comments (blocked by user)
+                    el.innerText.substring(0, 29) === "Sorry, this post is no longer"; // include unavailable submissions (blocked by user)
                 const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
                 // if the element has a deleted author, make a link to only show the deleted author
                 if (isDeletedAuthor) {
@@ -630,11 +636,15 @@
                 if (el.tagName === "P" && el.innerText !== "[unavailable]") {
                     return false;
                 }
+                // include "[unavailable]" comments (blocked by user) if from a deleted user
+                const isUnavailable =
+                    el.innerText === "[unavailable]" &&
+                    el?.closest(".entry").querySelector(".tagline").innerText.includes("[deleted]");
                 const isEditedRemovedOrDeletedAuthor =
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
                     el.innerText === "[removed]" || // include comments or submissions removed by moderator
-                    el.innerText === "[unavailable]"; // include unavailable submissions (blocked by user)
+                    isUnavailable; // include unavailable submissions (blocked by user)
                 // if the element is a deleted author and not edited or removed, only show the deleted author
                 if (
                     el.innerText === "[deleted]" &&
