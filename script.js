@@ -139,7 +139,7 @@
         // old reddit
         else {
             // old reddit comment
-            postId = innerEl?.parentElement?.parentElement?.parentElement?.id.replace("thing_", "");
+            postId = innerEl?.closest(".thing")?.id.replace("thing_", "");
             // old reddit submission
             if (!postId && isInSubmission(innerEl)) {
                 const match = window.location.href.match(/comments\/([A-Za-z0-9]{5,8})\//);
@@ -152,10 +152,17 @@
             }
             // if still not found, check for the .reportform element
             if (!postId) {
-                postId = innerEl.parentElement.parentElement
-                    .getElementsByClassName("reportform")[0]
-                    .className.replace(/.*t1/, "t1");
+                postId = innerEl?.closest(".entry")?.querySelector(".reportform")?.className.replace(/.*t1/, "t1");
             }
+            if (!postId) {
+                logging.error("Could not find post id", innerEl);
+                postId = "";
+            }
+        }
+        // if the post appears on the page after the last 3 characters are removed, remove them
+        const reMatch = postId.match(/(t1_\w+)\w{3}/) || postId.match(/(t3_\w+)\w{3}/);
+        if (reMatch && document.querySelector(`.${reMatch[1]}, #thing_${reMatch[1]}`)) {
+            postId = reMatch[1];
         }
         return postId;
     }
@@ -528,8 +535,10 @@
         if (!isOldReddit) {
             // check for edited/deleted comments and deleted submissions
             selectors = [
-                ".Comment div:first-of-type span:not(.found)", // Comments "edited..." or "Comment deleted/removed..."
-                ".Post div div div:last-of-type div ~ div:last-of-type:not(.found)", // Submissions "It doesn't appear in any feeds..." message
+                ".Comment div:first-of-type span:not([data-text]):not(.found)", // Comments "edited..." or "Comment deleted/removed..."
+                ".Post div div div:last-of-type div ~ div:last-of-type:not([data-text]):not(.found)", // Submissions "It doesn't appear in any feeds..." message
+                ".Post > div:only-child > div:nth-of-type(5) > div:last-of-type > div:not([data-text]):only-child:not(.found)", // Submissions "Sorry, this post is no longer available." message
+                ".Comment div.RichTextJSON-root > p:only-child:not([data-text]):not(.found)", // Comments "[unavailable]" message
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
@@ -538,12 +547,24 @@
                 if (el.children.length) {
                     return false;
                 }
+                // the only message we care about in a P element right now is "[unavailable]"
+                if (el.tagName === "P" && el.innerText !== "[unavailable]") {
+                    return false;
+                }
+                // include "[unavailable]" comments (blocked by user) if from a deleted user
+                const isUnavailable =
+                    el.innerText === "[unavailable]" &&
+                    el?.parentElement?.parentElement?.parentElement
+                        ?.querySelector("div")
+                        ?.innerText?.includes("[deleted]");
                 const isEditedOrRemoved =
                     el.innerText.substring(0, 6) === "edited" || // include edited comments
                     el.innerText.substring(0, 15) === "Comment deleted" || // include comments deleted by user
                     el.innerText.substring(0, 15) === "Comment removed" || // include comments removed by moderator
                     el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
-                    el.innerText.substring(0, 23) === "Moderators remove posts"; // include submissions removed by moderators
+                    el.innerText.substring(0, 23) === "Moderators remove posts" || // include submissions removed by moderators
+                    isUnavailable || // include unavailable comments (blocked by user)
+                    el.innerText.substring(0, 29) === "Sorry, this post is no longer"; // include unavailable submissions (blocked by user)
                 const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
                 // if the element has a deleted author, make a link to only show the deleted author
                 if (isDeletedAuthor) {
@@ -606,14 +627,24 @@
                 ".entry p.tagline em:not(.found), .entry p.tagline span:first-of-type:not(.found)", // Comment "[deleted]" author
                 "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
                 "div[data-url] .usertext-body em:not(.found)", // Submission "[removed]" body
+                ".entry .usertext .usertext-body > div.md > p:only-child:not(.found)", // Comment "[unavailable]" body
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
+                // The only message we care about in a P element right now is "[unavailable]"
+                if (el.tagName === "P" && el.innerText !== "[unavailable]") {
+                    return false;
+                }
+                // include "[unavailable]" comments (blocked by user) if from a deleted user
+                const isUnavailable =
+                    el.innerText === "[unavailable]" &&
+                    el?.closest(".entry").querySelector(".tagline").innerText.includes("[deleted]");
                 const isEditedRemovedOrDeletedAuthor =
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
-                    el.innerText === "[removed]"; // include comments or submissions removed by moderator
+                    el.innerText === "[removed]" || // include comments or submissions removed by moderator
+                    isUnavailable; // include unavailable submissions (blocked by user)
                 // if the element is a deleted author and not edited or removed, only show the deleted author
                 if (
                     el.innerText === "[deleted]" &&
