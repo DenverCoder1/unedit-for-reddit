@@ -780,7 +780,7 @@
     document.body.addEventListener("click", waitAndFindEditedComments, true);
 
     // add additional styling, find edited comments, and set old reddit status on page load
-    window.addEventListener("load", function () {
+    function init() {
         // determine if reddit is old or redesign
         isOldReddit = /old\.reddit/.test(window.location.href) || !!document.querySelector("#header-img");
         // Reddit redesign
@@ -979,5 +979,12 @@
         }
         // find edited comments
         findEditedComments();
-    });
+    }
+
+    // if the window is loaded, run init(), otherwise wait for it to load
+    if (document.readyState === "complete") {
+        init();
+    } else {
+        window.addEventListener("load", init, false);
+    }
 })();
