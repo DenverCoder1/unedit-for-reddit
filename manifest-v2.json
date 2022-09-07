@@ -10,6 +10,7 @@
             "js": ["vendor/showdown.min.js", "script.js"]
         }
     ],
+    "web_accessible_resources": ["vendor/showdown.min.js.map"],
     "page_action": {
         "default_icon": "images/logo64.png",
         "default_title": "Unedit and Undelete for Reddit"
