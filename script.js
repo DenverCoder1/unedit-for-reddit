@@ -123,6 +123,20 @@
     };
 
     /**
+     * Parse the URL for the submission ID and comment ID if it exists.
+     */
+    function parseURL() {
+        const match = window.location.href.match(/\/comments\/([A-Za-z0-9]+)\/(?:.*?\/([A-Za-z0-9]+))?/);
+        if (match) {
+            return {
+                submissionID: match[1],
+                commentID: match[2],
+            };
+        }
+        return null;
+    }
+
+    /**
      * Find the ID of a comment or submission.
      * @param {Element} innerEl An element inside the comment.
      * @returns {string} The Reddit ID of the comment.
@@ -138,10 +152,8 @@
                 })[0];
             } else {
                 // if post not found, try to find the post id in the URL
-                const match = window.location.href.match(/\/comments\/([A-Za-z0-9]+)\/(?:.*?\/([A-Za-z0-9]+))?/);
-                if (match) {
-                    postId = match[2] ? match[2] : match[1];
-                }
+                const parsedURL = parseURL();
+                postId = parsedURL?.commentID || parsedURL?.submissionID || postId;
             }
         }
         // old reddit
@@ -164,10 +176,8 @@
             }
             // if still not found check the url
             if (!postId) {
-                const match = window.location.href.match(/\/comments\/([A-Za-z0-9]+)\/(?:.*?\/([A-Za-z0-9]+))?/);
-                if (match) {
-                    postId = match[2] ? match[2] : match[1];
-                }
+                const parsedURL = parseURL();
+                postId = parsedURL?.commentID || parsedURL?.submissionID || postId;
             }
             // otherwise log an error
             if (!postId) {
