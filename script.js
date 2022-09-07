@@ -432,42 +432,44 @@
                     return;
                 }
                 // create url for getting comment/post from pushshift api
+                const URLs = [];
                 const idURL = isInSubmission(this)
-                    ? "https://api.pushshift.io/reddit/search/submission/?ids=" +
-                      postId +
-                      "&sort=desc&sort_type=created_utc&fields=selftext,author,id,created_utc,permalink"
-                    : "https://api.pushshift.io/reddit/search/comment/?ids=" +
-                      postId +
-                      "&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink";
+                    ? `https://api.pushshift.io/reddit/search/submission/?ids=${postId}&fields=selftext,author,id,created_utc,permalink`
+                    : `https://api.pushshift.io/reddit/search/comment/?ids=${postId}&fields=body,author,id,link_id,created_utc,permalink`;
+                URLs.push(idURL);
                 // create url for getting author comments/posts from pushshift api
                 const author = this.parentElement.querySelector("a[href*=user]")?.innerText;
-                const authorURL = isInSubmission(this)
-                    ? "https://api.pushshift.io/reddit/search/submission/?author=" +
-                      author +
-                      "&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id,created_utc,permalink"
-                    : "https://api.pushshift.io/reddit/search/comment/?author=" +
-                      author +
-                      "&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink";
+                if (author) {
+                    const authorURL = isInSubmission(this)
+                        ? `https://api.pushshift.io/reddit/search/submission/?author=${author}&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id,created_utc,permalink`
+                        : `https://api.pushshift.io/reddit/search/comment/?author=${author}&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink`;
+                    URLs.push(authorURL);
+                }
+                // if the author is unknown, check the parent post as an alternative instead
+                else if (!isInSubmission(this)) {
+                    const parsedURL = parseURL();
+                    if (parsedURL?.submissionID) {
+                        const parentURL = `https://api.pushshift.io/reddit/comment/search?q=*&link_id=${parsedURL.submissionID}&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink`;
+                        URLs.push(parentURL);
+                    }
+                }
 
                 // set loading status
                 currentLoading = this;
                 this.innerHTML = "loading...";
 
-                logging.info("Fetching from " + idURL + " and " + authorURL);
+                logging.info(`Fetching from ${URLs.join(" and ")}`);
 
                 // request from pushshift api
-                await Promise.all([
-                    fetch(idURL)
-                        .then((resp) => resp.json())
-                        .catch((error) => {
-                            logging.error("Error:", error);
-                        }),
-                    fetch(authorURL)
-                        .then((resp) => resp.json())
-                        .catch((error) => {
-                            logging.error("Error:", error);
-                        }),
-                ])
+                await Promise.all(
+                    URLs.map((url) =>
+                        fetch(url)
+                            .then((resp) => resp.json())
+                            .catch((error) => {
+                                logging.error("Error:", error);
+                            })
+                    )
+                )
                     .then((responses) => {
                         responses.forEach((out) => {
                             // locate the comment that was being loaded
