@@ -401,6 +401,7 @@
         const showLinkEl = document.createElement("a");
         showLinkEl.innerText = showAuthor ? "Show author" : "Show original";
         showLinkEl.className = innerEl.className + " showOriginal";
+        showLinkEl.classList.remove("error");
         showLinkEl.style.textDecoration = "underline";
         showLinkEl.style.cursor = "pointer";
         showLinkEl.style.marginLeft = "6px";
