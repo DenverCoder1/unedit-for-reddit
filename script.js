@@ -124,16 +124,14 @@
 
     /**
      * Parse the URL for the submission ID and comment ID if it exists.
+     * @returns {{submissionId: string|null, commentId: string|null}}
      */
     function parseURL() {
         const match = window.location.href.match(/\/comments\/([A-Za-z0-9]+)\/(?:.*?\/([A-Za-z0-9]+))?/);
-        if (match) {
-            return {
-                submissionID: match[1],
-                commentID: match[2],
-            };
-        }
-        return null;
+        return {
+            submissionId: match ? match[1] : null,
+            commentId: match ? match[2] : null,
+        };
     }
 
     /**
@@ -153,7 +151,7 @@
             } else {
                 // if post not found, try to find the post id in the URL
                 const parsedURL = parseURL();
-                postId = parsedURL?.commentID || parsedURL?.submissionID || postId;
+                postId = parsedURL.commentId || parsedURL.submissionId || postId;
             }
         }
         // old reddit
@@ -177,7 +175,7 @@
             // if still not found check the url
             if (!postId) {
                 const parsedURL = parseURL();
-                postId = parsedURL?.commentID || parsedURL?.submissionID || postId;
+                postId = parsedURL.commentId || parsedURL.submissionId || postId;
             }
             // otherwise log an error
             if (!postId) {
@@ -448,15 +446,15 @@
                 // if the author is unknown, check the parent post as an alternative instead
                 else if (!isInSubmission(this)) {
                     const parsedURL = parseURL();
-                    if (parsedURL?.submissionID) {
-                        const parentURL = `https://api.pushshift.io/reddit/comment/search?q=*&link_id=${parsedURL.submissionID}&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink`;
+                    if (parsedURL.submissionId) {
+                        const parentURL = `https://api.pushshift.io/reddit/comment/search?q=*&link_id=${parsedURL.submissionId}&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink`;
                         URLs.push(parentURL);
                     }
                 }
 
                 // set loading status
                 currentLoading = this;
-                this.innerHTML = "loading...";
+                this.innerText = "loading...";
 
                 logging.info(`Fetching from ${URLs.join(" and ")}`);
 
@@ -475,7 +473,7 @@
                             // locate the comment that was being loaded
                             const loading = currentLoading;
                             // exit if already found
-                            if (loading.innerHTML === "") {
+                            if (loading.innerText === "") {
                                 return;
                             }
                             // locate comment body
@@ -486,32 +484,32 @@
                             // check that comment was fetched and body element exists
                             if (!commentBodyElement) {
                                 // the comment body element was not found
-                                loading.innerHTML = "body element not found";
+                                loading.innerText = "body element not found";
                                 logging.error("Body element not found:", out);
                             } else if (typeof post?.body === "string") {
                                 // create new paragraph containing the body of the original comment
                                 showOriginalComment(commentBodyElement, "comment", post, includeBody);
                                 // remove loading status from comment
-                                loading.innerHTML = "";
+                                loading.innerText = "";
                                 logging.info("Successfully loaded comment.");
                             } else if (typeof post?.selftext === "string") {
                                 // check if result has selftext instead of body (it is a submission post)
                                 // create new paragraph containing the selftext of the original submission
                                 showOriginalComment(commentBodyElement, "post", post, includeBody);
                                 // remove loading status from post
-                                loading.innerHTML = "";
+                                loading.innerText = "";
                                 logging.info("Successfully loaded post.");
                             } else if (out?.data?.length === 0) {
                                 // data was returned empty
-                                loading.innerHTML = "not found";
+                                loading.innerText = "not found";
                                 logging.warn("No results:", out);
                             } else if (out?.data?.length > 0) {
                                 // no matching comment/post was found in the data
-                                loading.innerHTML = "not found";
+                                loading.innerText = "not found";
                                 logging.warn("No matching post:", out);
                             } else {
                                 // other issue occurred with displaying comment
-                                loading.innerHTML = "fetch failed";
+                                loading.innerText = "fetch failed";
                                 logging.error("Fetch failed:", out);
                             }
                         });
