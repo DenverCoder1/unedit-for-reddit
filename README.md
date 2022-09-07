@@ -65,6 +65,7 @@ The following are known limitations that cannot be fixed:
 -   Added support for comments not shown in the comment tree if the link is visited directly.
 -   Added missing `showdown.min.js.map` file to `/vendor` to avoid Source Map error (Browser Extension only).
 -   Avoids sending queries with the author being undefined, and checks the parent post if the author is not known.
+-   Ensure initalization runs even if the window finishes loading before the extension is loaded.
 
 ### Changes in 3.14.0
 
