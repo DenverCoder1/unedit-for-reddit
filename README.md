@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.15.0
+
+-   Added support for comments not shown in the comment tree if the link is visited directly.
+
 ### Changes in 3.14.0
 
 -   Added support for `[unavailable]` comments and submissions (occurs when the user has been blocked by the author).

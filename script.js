@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.14.0
+// @version      3.15.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @match        https://reddit.com/*
@@ -123,6 +123,20 @@
     };
 
     /**
+     * Parse the URL for the submission ID and comment ID if it exists.
+     */
+    function parseURL() {
+        const match = window.location.href.match(/\/comments\/([A-Za-z0-9]+)\/(?:.*?\/([A-Za-z0-9]+))?/);
+        if (match) {
+            return {
+                submissionID: match[1],
+                commentID: match[2],
+            };
+        }
+        return null;
+    }
+
+    /**
      * Find the ID of a comment or submission.
      * @param {Element} innerEl An element inside the comment.
      * @returns {string} The Reddit ID of the comment.
@@ -132,9 +146,15 @@
         // redesign
         if (!isOldReddit) {
             const post = innerEl?.closest("[class*='t1_'], [class*='t3_']");
-            postId = Array.from(post.classList).filter(function (el) {
-                return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
-            })[0];
+            if (post) {
+                postId = Array.from(post.classList).filter(function (el) {
+                    return el.indexOf("t1_") > -1 || el.indexOf("t3_") > -1;
+                })[0];
+            } else {
+                // if post not found, try to find the post id in the URL
+                const parsedURL = parseURL();
+                postId = parsedURL?.commentID || parsedURL?.submissionID || postId;
+            }
         }
         // old reddit
         else {
@@ -154,6 +174,12 @@
             if (!postId) {
                 postId = innerEl?.closest(".entry")?.querySelector(".reportform")?.className.replace(/.*t1/, "t1");
             }
+            // if still not found check the url
+            if (!postId) {
+                const parsedURL = parseURL();
+                postId = parsedURL?.commentID || parsedURL?.submissionID || postId;
+            }
+            // otherwise log an error
             if (!postId) {
                 logging.error("Could not find post id", innerEl);
                 postId = "";
@@ -197,6 +223,15 @@
                 } else {
                     bodyEl = baseEl;
                 }
+            } else {
+                // check for a paragraph with the text "That Comment Is Missing"
+                const missingCommentEl = document.querySelectorAll(`div > div > svg:first-child + p`);
+                [...missingCommentEl].some(function (el) {
+                    if (el.innerText === "That Comment Is Missing") {
+                        bodyEl = el.parentElement;
+                        return true;
+                    }
+                });
             }
         }
         // old reddit
@@ -207,7 +242,9 @@
                 bodyEl = baseEl;
             } else {
                 baseEl = document.querySelector(".report-" + postId);
-                bodyEl = baseEl ? baseEl.closest(".entry").querySelector(".usertext") : null;
+                bodyEl = baseEl
+                    ? baseEl.closest(".entry").querySelector(".usertext")
+                    : document.querySelector("p#noresults");
             }
             // old reddit submissions
             if (!bodyEl) {
@@ -374,6 +411,7 @@
         const showLinkEl = document.createElement("a");
         showLinkEl.innerText = showAuthor ? "Show author" : "Show original";
         showLinkEl.className = innerEl.className + " showOriginal";
+        showLinkEl.classList.remove("error");
         showLinkEl.style.textDecoration = "underline";
         showLinkEl.style.cursor = "pointer";
         showLinkEl.style.marginLeft = "6px";
@@ -539,6 +577,7 @@
                 ".Post div div div:last-of-type div ~ div:last-of-type:not([data-text]):not(.found)", // Submissions "It doesn't appear in any feeds..." message
                 ".Post > div:only-child > div:nth-of-type(5) > div:last-of-type > div:not([data-text]):only-child:not(.found)", // Submissions "Sorry, this post is no longer available." message
                 ".Comment div.RichTextJSON-root > p:only-child:not([data-text]):not(.found)", // Comments "[unavailable]" message
+                "div > div > svg:first-child + p:not(.found)", // "That Comment Is Missing" page
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
@@ -547,8 +586,12 @@
                 if (el.children.length) {
                     return false;
                 }
-                // the only message we care about in a P element right now is "[unavailable]"
-                if (el.tagName === "P" && el.innerText !== "[unavailable]") {
+                // the only messages we care about in a P element right now is "[unavailable]" or "That Comment Is Missing"
+                if (
+                    el.tagName === "P" &&
+                    el.innerText !== "[unavailable]" &&
+                    el.innerText !== "That Comment Is Missing"
+                ) {
                     return false;
                 }
                 // include "[unavailable]" comments (blocked by user) if from a deleted user
@@ -564,6 +607,7 @@
                     el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
                     el.innerText.substring(0, 23) === "Moderators remove posts" || // include submissions removed by moderators
                     isUnavailable || // include unavailable comments (blocked by user)
+                    el.innerText === "That Comment Is Missing" || // include comments not found in comment tree
                     el.innerText.substring(0, 29) === "Sorry, this post is no longer"; // include unavailable submissions (blocked by user)
                 const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
                 // if the element has a deleted author, make a link to only show the deleted author
@@ -628,12 +672,13 @@
                 "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
                 "div[data-url] .usertext-body em:not(.found)", // Submission "[removed]" body
                 ".entry .usertext .usertext-body > div.md > p:only-child:not(.found)", // Comment "[unavailable]" body
+                "p#noresults", // "there doesn't seem to be anything here" page
             ];
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
-                // The only message we care about in a P element right now is "[unavailable]"
-                if (el.tagName === "P" && el.innerText !== "[unavailable]") {
+                // The only messages we care about in a P element right now is "[unavailable]" or #noresults
+                if (el.tagName === "P" && el.innerText !== "[unavailable]" && el.id !== "noresults") {
                     return false;
                 }
                 // include "[unavailable]" comments (blocked by user) if from a deleted user
@@ -644,6 +689,7 @@
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
                     el.innerText === "[removed]" || // include comments or submissions removed by moderator
+                    el.id === "noresults" || // include "there doesn't seem to be anything here" page
                     isUnavailable; // include unavailable submissions (blocked by user)
                 // if the element is a deleted author and not edited or removed, only show the deleted author
                 if (
@@ -851,6 +897,10 @@
                     }
                     span.edited-date, a.showOriginal {
                         font-size: small;
+                    }
+                    /* Add some space under the View all comments button on "That Comment Is Missing" page */
+                    div:first-child > div:first-child > svg + p + a[role="button"] {
+                        margin-bottom: 1em;
                     }
                 </style>`
             );
