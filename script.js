@@ -129,8 +129,8 @@
     function parseURL() {
         const match = window.location.href.match(/\/comments\/([A-Za-z0-9]+)\/(?:.*?\/([A-Za-z0-9]+))?/);
         return {
-            submissionId: match ? match[1] : null,
-            commentId: match ? match[2] : null,
+            submissionId: (match && match[1]) || null,
+            commentId: (match && match[2]) || null,
         };
     }
 
