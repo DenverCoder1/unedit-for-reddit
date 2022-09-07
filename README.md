@@ -63,6 +63,7 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.15.0
 
 -   Added support for comments not shown in the comment tree if the link is visited directly.
+-   Added missing `showdown.min.js.map` file to `/vendor` to avoid Source Map error (Browser Extension only).
 
 ### Changes in 3.14.0
 
