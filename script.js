@@ -1,14 +1,29 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.15.0
+// @version      3.15.1
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
-// @match        https://reddit.com/*
-// @match        https://*.reddit.com/*
 // @grant        none
 // @require      https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
 // @license      MIT
+// @match        https://*.reddit.com/
+// @match        https://*.reddit.com/me/f/*
+// @match        https://*.reddit.com/message/*
+// @match        https://*.reddit.com/r/*
+// @match        https://*.reddit.com/user/*
+// @exclude      https://*.reddit.com/*/about/banned*
+// @exclude      https://*.reddit.com/*/about/contributors*
+// @exclude      https://*.reddit.com/*/about/edit*
+// @exclude      https://*.reddit.com/*/about/flair*
+// @exclude      https://*.reddit.com/*/about/log*
+// @exclude      https://*.reddit.com/*/about/moderators*
+// @exclude      https://*.reddit.com/*/about/muted*
+// @exclude      https://*.reddit.com/*/about/rules*
+// @exclude      https://*.reddit.com/*/about/stylesheet*
+// @exclude      https://*.reddit.com/*/about/traffic*
+// @exclude      https://*.reddit.com/*/wiki/*
+// @exclude      https://mod.reddit.com/*
 // ==/UserScript==
 
 /* jshint esversion: 8 */

@@ -2,11 +2,31 @@
     "manifest_version": 2,
     "name": "Unedit and Undelete for Reddit",
     "description": "Show original comments and posts from before they were edited or removed",
-    "version": "3.15.0",
+    "version": "3.15.1",
     "content_scripts": [
         {
             "run_at": "document_idle",
-            "matches": ["*://*.reddit.com/*"],
+            "matches": [
+                "*://*.reddit.com/",
+                "*://*.reddit.com/me/f/*",
+                "*://*.reddit.com/message/*",
+                "*://*.reddit.com/r/*",
+                "*://*.reddit.com/user/*"
+            ],
+            "exclude_matches": [
+                "*://*.reddit.com/*/about/banned*",
+                "*://*.reddit.com/*/about/contributors*",
+                "*://*.reddit.com/*/about/edit*",
+                "*://*.reddit.com/*/about/flair*",
+                "*://*.reddit.com/*/about/log*",
+                "*://*.reddit.com/*/about/moderators*",
+                "*://*.reddit.com/*/about/muted*",
+                "*://*.reddit.com/*/about/rules*",
+                "*://*.reddit.com/*/about/stylesheet*",
+                "*://*.reddit.com/*/about/traffic*",
+                "*://*.reddit.com/*/wiki/*",
+                "*://mod.reddit.com/*"
+            ],
             "js": ["vendor/showdown.min.js", "script.js"]
         }
     ],
