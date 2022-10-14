@@ -60,6 +60,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.15.1
+
+-   Added some URL patterns to be excluded from running the script
+
 ### Changes in 3.15.0
 
 -   Added support for comments not shown in the comment tree if the link is visited directly.
