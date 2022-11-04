@@ -62,6 +62,11 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.16.0
+
+-   Support for .compact Reddit layout
+-   Show original links will not be shown if the post ID could not be determined
+
 ### Changes in 3.15.1
 
 -   Added some URL patterns to be excluded from running the script
