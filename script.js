@@ -39,6 +39,13 @@
     let isOldReddit = false;
 
     /**
+     * Whether or not we are on compact mode.
+     * This will be set in the "load" event listener.
+     * @type {boolean}
+     */
+    let isCompact = false;
+
+    /**
      * Timeout to check for new edited comments on page.
      * This will be updated when scrolling.
      * @type {number?}
@@ -170,7 +177,7 @@
             }
         }
         // old reddit
-        else {
+        else if (!isCompact) {
             // old reddit comment
             postId = innerEl?.closest(".thing")?.id.replace("thing_", "");
             // old reddit submission
@@ -196,6 +203,19 @@
             if (!postId) {
                 logging.error("Could not find post id", innerEl);
                 postId = "";
+            }
+        }
+        // compact
+        else {
+            const thing = innerEl?.closest(".thing");
+            if (thing) {
+                const idClass = [...thing.classList].find((c) => c.startsWith("id-"));
+                postId = idClass ? idClass.replace("id-", "") : "";
+            }
+            // if not found, check the url
+            if (!postId) {
+                const parsedURL = parseURL();
+                postId = parsedURL.commentId || parsedURL.submissionId || postId;
             }
         }
         // if the post appears on the page after the last 3 characters are removed, remove them
@@ -248,7 +268,7 @@
             }
         }
         // old reddit
-        else {
+        else if (!isCompact) {
             // old reddit comments
             baseEl = document.querySelector(`form[id*='${postId}'] .md`);
             if (baseEl?.closest(".entry")) {
@@ -271,6 +291,14 @@
                 bodyEl = document.querySelector(`.id-${postId}`);
             }
         }
+        // compact view
+        else {
+            bodyEl = document.querySelector(`.id-${postId} .md, .id-${postId} form.usertext`);
+            // if not found, check for the .usertext element containing it as part of its id
+            if (!bodyEl) {
+                bodyEl = document.querySelector(".showOriginal")?.parentElement;
+            }
+        }
         return bodyEl;
     }
 
@@ -285,6 +313,14 @@
             "div[data-url]", // old reddit on submission page
             ".Post", // redesign
         ];
+        // class list of .thing contains id-t3_...
+        const thing = innerEl?.closest(".thing");
+        if (thing) {
+            const idClass = [...thing.classList].find((c) => c.startsWith("id-"));
+            if (idClass) {
+                return idClass.startsWith("id-t3_");
+            }
+        }
         return Boolean(innerEl.closest(selectors.join(", ")));
     }
 
@@ -434,7 +470,7 @@
         const postId = getPostId(showLinkEl);
         showLinkEl.alt = `View original post for ID ${postId}`;
         if (!postId) {
-            showLinkEl.style.color = "#dd2c00";
+            showLinkEl.parentElement.removeChild(showLinkEl);
         }
         // click event
         showLinkEl.addEventListener(
@@ -679,13 +715,13 @@
                 checkForEditedSubmissions();
             }
         }
-        // old Reddit
+        // old Reddit and compact Reddit
         else {
             selectors = [
                 ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
-                ".entry p.tagline em:not(.found), .entry p.tagline span:first-of-type:not(.found)", // Comment "[deleted]" author
+                ".entry p.tagline em:not(.found), .entry .tagline span:first-of-type:not(.found)", // Comment "[deleted]" author
                 "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
-                "div[data-url] .usertext-body em:not(.found)", // Submission "[removed]" body
+                "div[data-url] .usertext-body em:not(.found), form.usertext em:not(.found)", // Submission "[removed]" body
                 ".entry .usertext .usertext-body > div.md > p:only-child:not(.found)", // Comment "[unavailable]" body
                 "p#noresults", // "there doesn't seem to be anything here" page
             ];
@@ -796,6 +832,7 @@
     function init() {
         // determine if reddit is old or redesign
         isOldReddit = /old\.reddit/.test(window.location.href) || !!document.querySelector("#header-img");
+        isCompact = document.querySelector("#header-img-a")?.href?.endsWith(".compact") || false;
         // Reddit redesign
         if (!isOldReddit) {
             // fix styling of created paragraphs in new reddit
