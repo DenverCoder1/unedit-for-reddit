@@ -29,8 +29,8 @@ The [Pushshift Reddit API](https://github.com/pushshift/api) is used for fetchin
 
 ## Installation
 
-[![Install with Greasy Fork](https://user-images.githubusercontent.com/20955511/172905333-b5815a66-1013-4a1a-a6f2-7b6447aee9c5.png)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
-[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/172903902-727ce3a9-5a63-44a8-becd-bcc11e954f30.png)](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka)
+[![Install with Greasy Fork](https://user-images.githubusercontent.com/20955511/201193167-934b9e7b-66b2-4b6b-84e3-d8a677c66da4.png)](https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit)
+[![Available in the Chrome Web Store](https://user-images.githubusercontent.com/20955511/201192698-df2474d7-83e8-429f-a4a5-d590ff1bfb5b.png)](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka)
 [![Firefox Get the Add-on](https://user-images.githubusercontent.com/20955511/172904059-eb121557-ef91-43a6-a5f6-f4be5e20a5dc.png)](https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/)
 
 ### As a Userscript
