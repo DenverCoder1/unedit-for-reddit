@@ -1,19 +1,21 @@
-<p align="center"><img src="https://raw.githubusercontent.com/DenverCoder1/Unedit-for-Reddit/3.9.4/images/logo128.png" /></center>
+<center>
+  <p align="center"><img src="https://raw.githubusercontent.com/DenverCoder1/Unedit-for-Reddit/3.9.4/images/logo128.png" /></p>
 
-<h1 align="center">Unedit and Undelete for Reddit</h1>
+  <h1 align="center">Unedit and Undelete for Reddit</h1>
 
-<p align="center">
-  <a href="https://discord.gg/fPrdqh3Zfu">
-    <img src="https://img.shields.io/discord/819650821314052106?color=7289DA&logo=discord&logoColor=white" alt="Dev Pro Tips Discussion & Support Server" /></a>
-  <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
-    <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=github" alt="Issues" /></a>
-  <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
-    <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=000&label=greasy+fork&query=%24.message&url=https://img.shields.io/greasyfork/dt/407466.json&logo=greasyforkpng&suffix=%20users" alt="Greasy Fork users" /></a>
-  <a href="https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka">
-    <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=blue&label=chrome+web+store&query=%24.message&url=https://img.shields.io/chrome-web-store/users/cnpmnmpafbfojcoofaobmhmafiflgmka.json&logo=chrome-webstore&suffix=%20users" alt="Chrome Web Store users" /></a>
-  <a href="https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/">
-    <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=FF7139&label=firefox+add-on&query=%24.message&url=https://img.shields.io/amo/users/unedit-for-reddit.json&logo=firefoxpng&suffix=%20users" alt="Firefox users" /></a>
-</p>
+  <p align="center">
+    <a href="https://discord.gg/fPrdqh3Zfu">
+      <img src="https://img.shields.io/discord/819650821314052106?color=7289DA&logo=discord&logoColor=white" alt="Dev Pro Tips Discussion & Support Server" /></a>
+    <a href="https://github.com/DenverCoder1/Unedit-for-Reddit/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
+      <img src="https://custom-icon-badges.herokuapp.com/github/issues-raw/DenverCoder1/Unedit-for-Reddit?logo=github" alt="Issues" /></a>
+    <a href="https://greasyfork.org/en/scripts/407466-unedit-and-undelete-for-reddit">
+      <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=000&label=greasy+fork&query=%24.message&url=https://img.shields.io/greasyfork/dt/407466.json&logo=greasyforkpng&suffix=%20users" alt="Greasy Fork users" /></a>
+    <a href="https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka">
+      <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=blue&label=chrome+web+store&query=%24.message&url=https://img.shields.io/chrome-web-store/users/cnpmnmpafbfojcoofaobmhmafiflgmka.json&logo=chrome-webstore&suffix=%20users" alt="Chrome Web Store users" /></a>
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/unedit-for-reddit/">
+      <img src="https://custom-icon-badges.herokuapp.com/badge/dynamic/json?color=FF7139&label=firefox+add-on&query=%24.message&url=https://img.shields.io/amo/users/unedit-for-reddit.json&logo=firefoxpng&suffix=%20users" alt="Firefox users" /></a>
+  </p>
+</center>
 
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
 
