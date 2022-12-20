@@ -74,6 +74,11 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.16.1
+
+-   Removed sort order parameters due to recent breaking changes in the Pushshift API
+-   Added title text to show original links and error links to show additional information when hovering over them
+
 ### Changes in 3.16.0
 
 -   Support for .compact Reddit layout
