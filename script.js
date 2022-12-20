@@ -32,6 +32,12 @@
     "use strict";
 
     /**
+     * The current version of the script
+     * @type {string}
+     */
+    const VERSION = "3.16.1";
+
+    /**
      * Whether or not we are on old reddit and not redesign.
      * This will be set in the "load" event listener.
      * @type {boolean}
@@ -850,6 +856,8 @@
 
     // add additional styling, find edited comments, and set old reddit status on page load
     function init() {
+        // output the version number to the console
+        logging.info(`Unedit and Undelete for Reddit v${VERSION}`);
         // determine if reddit is old or redesign
         isOldReddit = /old\.reddit/.test(window.location.href) || !!document.querySelector("#header-img");
         isCompact = document.querySelector("#header-img-a")?.href?.endsWith(".compact") || false;
