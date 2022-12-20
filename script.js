@@ -464,6 +464,7 @@
         showLinkEl.style.textDecoration = "underline";
         showLinkEl.style.cursor = "pointer";
         showLinkEl.style.marginLeft = "6px";
+        showLinkEl.title = "Click to show data from the original post or comment";
         innerEl.parentElement.appendChild(showLinkEl);
         innerEl.classList.add("match");
         // find id of selected comment or submission
@@ -506,6 +507,7 @@
                 // set loading status
                 currentLoading = this;
                 this.innerText = "loading...";
+                this.title = "Loading data from the original post or comment";
 
                 logging.info(`Fetching from ${URLs.join(" and ")}`);
 
@@ -542,12 +544,14 @@
                             if (!commentBodyElement) {
                                 // the comment body element was not found
                                 loading.innerText = "body element not found";
+                                loading.title = "Please report this issue to the developer on GitHub.";
                                 logging.error("Body element not found:", out);
                             } else if (typeof post?.body === "string") {
                                 // create new paragraph containing the body of the original comment
                                 showOriginalComment(commentBodyElement, "comment", post, includeBody);
                                 // remove loading status from comment
                                 loading.innerText = "";
+                                loading.title = "";
                                 logging.info("Successfully loaded comment.");
                             } else if (typeof post?.selftext === "string") {
                                 // check if result has selftext instead of body (it is a submission post)
@@ -555,18 +559,22 @@
                                 showOriginalComment(commentBodyElement, "post", post, includeBody);
                                 // remove loading status from post
                                 loading.innerText = "";
+                                loading.title = "";
                                 logging.info("Successfully loaded post.");
                             } else if (out?.data?.length === 0) {
                                 // data was returned empty
                                 loading.innerText = "not found";
+                                loading.title = "No matching results were found in the Pushshift archive.";
                                 logging.warn("No results:", out);
                             } else if (out?.data?.length > 0) {
                                 // no matching comment/post was found in the data
                                 loading.innerText = "not found";
+                                loading.title = "The comment/post was not found in the Pushshift archive.";
                                 logging.warn("No matching post:", out);
                             } else {
                                 // other issue occurred with displaying comment
                                 loading.innerText = "fetch failed";
+                                loading.title = "This is likely due to a Pushshift API issue. Please try again later.";
                                 logging.error("Fetch failed:", out);
                             }
                         });
