@@ -490,15 +490,15 @@
                 const author = this.parentElement.querySelector("a[href*=user]")?.innerText;
                 if (author) {
                     const authorURL = isInSubmission(this)
-                        ? `https://api.pushshift.io/reddit/search/submission/?author=${author}&size=200&sort=desc&sort_type=created_utc&fields=selftext,author,id,created_utc,permalink`
-                        : `https://api.pushshift.io/reddit/search/comment/?author=${author}&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink`;
+                        ? `https://api.pushshift.io/reddit/search/submission/?author=${author}&size=200&fields=selftext,author,id,created_utc,permalink`
+                        : `https://api.pushshift.io/reddit/search/comment/?author=${author}&size=200&fields=body,author,id,link_id,created_utc,permalink`;
                     URLs.push(authorURL);
                 }
                 // if the author is unknown, check the parent post as an alternative instead
                 else if (!isInSubmission(this)) {
                     const parsedURL = parseURL();
                     if (parsedURL.submissionId) {
-                        const parentURL = `https://api.pushshift.io/reddit/comment/search?q=*&link_id=${parsedURL.submissionId}&size=200&sort=desc&sort_type=created_utc&fields=body,author,id,link_id,created_utc,permalink`;
+                        const parentURL = `https://api.pushshift.io/reddit/comment/search?q=*&link_id=${parsedURL.submissionId}&size=200&fields=body,author,id,link_id,created_utc,permalink`;
                         URLs.push(parentURL);
                     }
                 }
@@ -512,7 +512,13 @@
                 // request from pushshift api
                 await Promise.all(
                     URLs.map((url) =>
-                        fetch(url)
+                        fetch(url, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "User-Agent": "Unedit and Undelete for Reddit",
+                            },
+                        })
                             .then((resp) => resp.json())
                             .catch((error) => {
                                 logging.error("Error:", error);
@@ -789,7 +795,13 @@
         const [url, query] = window.location.href.split("?");
         const jsonUrl = `${url}.json` + (query ? `?${query}` : "");
         logging.info(`Fetching additional info from ${jsonUrl}`);
-        fetch(jsonUrl)
+        fetch(jsonUrl, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent": "Unedit and Undelete for Reddit",
+            },
+        })
             .then(function (response) {
                 if (!response.ok) {
                     throw new Error(`${response.status} ${response.statusText}`);
@@ -833,6 +845,11 @@
         // determine if reddit is old or redesign
         isOldReddit = /old\.reddit/.test(window.location.href) || !!document.querySelector("#header-img");
         isCompact = document.querySelector("#header-img-a")?.href?.endsWith(".compact") || false;
+        // upgrade insecure requests
+        document.head.insertAdjacentHTML(
+            "beforeend",
+            `<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">`
+        );
         // Reddit redesign
         if (!isOldReddit) {
             // fix styling of created paragraphs in new reddit
