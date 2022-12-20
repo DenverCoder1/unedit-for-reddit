@@ -507,6 +507,7 @@
                 // set loading status
                 currentLoading = this;
                 this.innerText = "loading...";
+                this.title = "Loading data from the original post or comment";
 
                 logging.info(`Fetching from ${URLs.join(" and ")}`);
 
