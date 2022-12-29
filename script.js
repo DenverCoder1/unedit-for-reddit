@@ -557,7 +557,7 @@
                                 showOriginalComment(commentBodyElement, "comment", post, includeBody);
                                 // remove loading status from comment
                                 loading.innerText = "";
-                                loading.title = "";
+                                loading.removeAttribute("title");
                                 logging.info("Successfully loaded comment.");
                             } else if (typeof post?.selftext === "string") {
                                 // check if result has selftext instead of body (it is a submission post)
@@ -565,7 +565,7 @@
                                 showOriginalComment(commentBodyElement, "post", post, includeBody);
                                 // remove loading status from post
                                 loading.innerText = "";
-                                loading.title = "";
+                                loading.removeAttribute("title");
                                 logging.info("Successfully loaded post.");
                             } else if (out?.data?.length === 0) {
                                 // data was returned empty
