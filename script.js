@@ -1057,6 +1057,10 @@
                     .res-nightmode .entry.res-selected .md-container > .md p.og p {
                         color: black !important;
                     }
+                    /* Override RES title text display */
+                    .res-betteReddit-showLastEditedTimestamp .edited-timestamp.showOriginal[title]::after {
+                        content: "";
+                    }
                 </style>`
             );
         }
