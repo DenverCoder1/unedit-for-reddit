@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.16.1
+// @version      3.16.2
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @grant        none
@@ -35,7 +35,7 @@
      * The current version of the script
      * @type {string}
      */
-    const VERSION = "3.16.1";
+    const VERSION = "3.16.2";
 
     /**
      * Whether or not we are on old reddit and not redesign.
@@ -527,7 +527,17 @@
                                 "User-Agent": "Unedit and Undelete for Reddit",
                             },
                         })
-                            .then((resp) => resp.json())
+                            .then((response) => {
+                                if (!response.ok) {
+                                    logging.error("Response not ok:", response);
+                                    throw Error(response.statusText);
+                                }
+                                try {
+                                    return response.json();
+                                } catch (e) {
+                                    throw Error(`Invalid JSON Response: ${response}`);
+                                }
+                            })
                             .catch((error) => {
                                 logging.error("Error:", error);
                             })

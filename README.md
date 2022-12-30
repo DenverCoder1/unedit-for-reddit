@@ -64,6 +64,12 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.16.2
+
+-   The script version number is logged to the console when the script is loaded
+-   Title text no longer appears in parentheses when using RES
+-   Added additional logging for Pushshift API errors
+
 ### Changes in 3.16.1
 
 -   Removed sort order parameters due to recent breaking changes in the Pushshift API
