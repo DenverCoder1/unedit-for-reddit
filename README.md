@@ -17,6 +17,16 @@
   </p>
 </center>
 
+> **Warning**
+> 
+> The Pushshift Data API is undergoing changes as [announced here](https://old.reddit.com/r/pushshift/comments/zhzaea/the_day_has_finally_arrived_pushshift_api_move/).
+> There is also an update [here](https://old.reddit.com/r/pushshift/comments/zk1jyw/link_id_signed_integer_overflow_bugs_in_pushshift/izxv6vg/).
+> Checking [r/pushshift](https://www.reddit.com/r/pushshift) for updates is recommended.
+> 
+> Since Unedit and Undelete for Reddit relies on Pushshift to work, you may experience some issues over the next few days which are unavoidable.
+> 
+>   12/12/2022
+
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
 
 The unedited comment will be displayed inline, right below the current comment or submission's text.
