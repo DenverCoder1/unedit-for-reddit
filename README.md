@@ -74,6 +74,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.16.2
+
+-   Updated manifest v2 permissions list for Firefox 109 support
+
 ### Changes in 3.16.1
 
 -   Removed sort order parameters due to recent breaking changes in the Pushshift API
