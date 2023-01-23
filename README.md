@@ -77,6 +77,8 @@ The following are known limitations that cannot be fixed:
 ### Changes in 3.16.2
 
 -   Updated manifest v2 permissions list for Firefox 109 support
+-   Added version number to startup logs
+-   Remove title text from appearing in parentheses for RES users
 
 ### Changes in 3.16.1
 
