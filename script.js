@@ -527,7 +527,17 @@
                                 "User-Agent": "Unedit and Undelete for Reddit",
                             },
                         })
-                            .then((resp) => resp.json())
+                            .then((response) => {
+                                if (!response.ok) {
+                                    logging.error("Response not ok:", response);
+                                    throw Error(response.statusText);
+                                }
+                                try {
+                                    return response.json();
+                                } catch (e) {
+                                    throw Error(`Invalid JSON Response: ${response}`);
+                                }
+                            })
                             .catch((error) => {
                                 logging.error("Error:", error);
                             })
