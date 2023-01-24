@@ -41,5 +41,5 @@
         "48": "images/logo48.png",
         "128": "images/logo128.png"
     },
-    "permissions": ["https://api.pushshift.io/reddit/search/*"]
+    "permissions": ["*://*.pushshift.io/*"]
 }
