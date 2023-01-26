@@ -667,10 +667,11 @@
                 if (el.children.length) {
                     return false;
                 }
-                // the only messages we care about in a P element right now is "[unavailable]" or "That Comment Is Missing"
+                // there are only specific phrases we care about in a P element
                 if (
                     el.tagName === "P" &&
                     el.innerText !== "[unavailable]" &&
+                    el.innerText !== "[ Removed by Reddit ]" &&
                     el.innerText !== "That Comment Is Missing"
                 ) {
                     return false;
@@ -688,6 +689,7 @@
                     el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
                     el.innerText.substring(0, 23) === "Moderators remove posts" || // include submissions removed by moderators
                     isUnavailable || // include unavailable comments (blocked by user)
+                    el.innerText === "[ Removed by Reddit ]" || // include comments removed by Reddit
                     el.innerText === "That Comment Is Missing" || // include comments not found in comment tree
                     el.innerText.substring(0, 29) === "Sorry, this post is no longer"; // include unavailable submissions (blocked by user)
                 const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
@@ -759,7 +761,12 @@
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
                 // The only messages we care about in a P element right now is "[unavailable]" or #noresults
-                if (el.tagName === "P" && el.innerText !== "[unavailable]" && el.id !== "noresults") {
+                if (
+                    el.tagName === "P" &&
+                    el.innerText !== "[unavailable]" &&
+                    el.innerText !== "[ Removed by Reddit ]" &&
+                    el.id !== "noresults"
+                ) {
                     return false;
                 }
                 // include "[unavailable]" comments (blocked by user) if from a deleted user
@@ -770,6 +777,7 @@
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
                     el.innerText === "[removed]" || // include comments or submissions removed by moderator
+                    el.innerText === "[ Removed by Reddit ]" || // include comments or submissions removed by Reddit
                     el.id === "noresults" || // include "there doesn't seem to be anything here" page
                     isUnavailable; // include unavailable submissions (blocked by user)
                 // if the element is a deleted author and not edited or removed, only show the deleted author
