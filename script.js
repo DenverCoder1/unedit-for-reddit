@@ -530,6 +530,10 @@
         if (!postId) {
             showLinkEl.parentElement.removeChild(showLinkEl);
         }
+        // if there are any links, add "Show All Original" link to the post if it doesn't exist
+        if (!document.querySelector(".showAllOriginal")) {
+            createShowAllOriginalLink();
+        }
         // click event
         showLinkEl.addEventListener(
             "click",
@@ -1013,8 +1017,6 @@
                 showAllOriginalContent();
             }
         });
-        // add "Show All Original" link to the post
-        createShowAllOriginalLink();
         // Reddit redesign
         if (!isOldReddit) {
             // fix styling of created paragraphs in new reddit
