@@ -625,10 +625,10 @@
     function createShowAllOriginalLink() {
         const { submissionId } = parseURL();
         const innerEl = document.querySelector(
-            `[data-url] .entry .tagline > span:last-of-type,
+            `[data-url][class*="${submissionId}"] .entry .tagline > span:last-of-type,
             #t3_${submissionId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type`
         );
-        if (!innerEl) {
+        if (!submissionId || !innerEl) {
             return;
         }
         // create link to "Show All Original"
