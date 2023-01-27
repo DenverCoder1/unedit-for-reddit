@@ -453,6 +453,55 @@
     }
 
     /**
+     * Handle show original event given the post to show content for.
+     * @param {Element} linkEl The link element for showing the status.
+     * @param {object} out The response from the API.
+     * @param {object} post The archived data of the original comment/post.
+     * @param {Boolean} includeBody Whether or not to include the body of the original comment/post.
+     */
+    function handleShowOriginalEvent(linkEl, out, post, includeBody) {
+        // locate comment body
+        const commentBodyElement = getPostBodyElement(post.id);
+        // check that comment was fetched and body element exists
+        if (!commentBodyElement) {
+            // the comment body element was not found
+            linkEl.innerText = "body element not found";
+            linkEl.title = "Please report this issue to the developer on GitHub.";
+            logging.error("Body element not found:", out);
+        } else if (typeof post?.body === "string") {
+            // create new paragraph containing the body of the original comment
+            showOriginalComment(commentBodyElement, "comment", post, includeBody);
+            // remove loading status from comment
+            linkEl.innerText = "";
+            linkEl.removeAttribute("title");
+            logging.info("Successfully loaded comment.");
+        } else if (typeof post?.selftext === "string") {
+            // check if result has selftext instead of body (it is a submission post)
+            // create new paragraph containing the selftext of the original submission
+            showOriginalComment(commentBodyElement, "post", post, includeBody);
+            // remove loading status from post
+            linkEl.innerText = "";
+            linkEl.removeAttribute("title");
+            logging.info("Successfully loaded post.");
+        } else if (out?.data?.length === 0) {
+            // data was returned empty
+            linkEl.innerText = "not found";
+            linkEl.title = "No matching results were found in the Pushshift archive.";
+            logging.warn("No results:", out);
+        } else if (out?.data?.length > 0) {
+            // no matching comment/post was found in the data
+            linkEl.innerText = "not found";
+            linkEl.title = "The comment/post was not found in the Pushshift archive.";
+            logging.warn("No matching post:", out);
+        } else {
+            // other issue occurred with displaying comment
+            linkEl.innerText = "fetch failed";
+            linkEl.title = "This is likely due to a Pushshift API issue. Please try again later.";
+            logging.error("Fetch failed:", out);
+        }
+    }
+
+    /**
      * Create a link to view the original comment/post.
      * @param {Element} innerEl An element inside the comment or post to create a link for.
      */
@@ -476,6 +525,7 @@
         // find id of selected comment or submission
         const postId = getPostId(showLinkEl);
         showLinkEl.alt = `View original post for ID ${postId}`;
+        showLinkEl.dataset.postId = postId;
         if (!postId) {
             showLinkEl.parentElement.removeChild(showLinkEl);
         }
@@ -551,48 +601,10 @@
                             if (loading.innerText === "") {
                                 return;
                             }
-                            // locate comment body
-                            const commentBodyElement = getPostBodyElement(postId);
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
                             logging.info("Response:", { author, id: postId, post, data: out?.data });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
-                            // check that comment was fetched and body element exists
-                            if (!commentBodyElement) {
-                                // the comment body element was not found
-                                loading.innerText = "body element not found";
-                                loading.title = "Please report this issue to the developer on GitHub.";
-                                logging.error("Body element not found:", out);
-                            } else if (typeof post?.body === "string") {
-                                // create new paragraph containing the body of the original comment
-                                showOriginalComment(commentBodyElement, "comment", post, includeBody);
-                                // remove loading status from comment
-                                loading.innerText = "";
-                                loading.removeAttribute("title");
-                                logging.info("Successfully loaded comment.");
-                            } else if (typeof post?.selftext === "string") {
-                                // check if result has selftext instead of body (it is a submission post)
-                                // create new paragraph containing the selftext of the original submission
-                                showOriginalComment(commentBodyElement, "post", post, includeBody);
-                                // remove loading status from post
-                                loading.innerText = "";
-                                loading.removeAttribute("title");
-                                logging.info("Successfully loaded post.");
-                            } else if (out?.data?.length === 0) {
-                                // data was returned empty
-                                loading.innerText = "not found";
-                                loading.title = "No matching results were found in the Pushshift archive.";
-                                logging.warn("No results:", out);
-                            } else if (out?.data?.length > 0) {
-                                // no matching comment/post was found in the data
-                                loading.innerText = "not found";
-                                loading.title = "The comment/post was not found in the Pushshift archive.";
-                                logging.warn("No matching post:", out);
-                            } else {
-                                // other issue occurred with displaying comment
-                                loading.innerText = "fetch failed";
-                                loading.title = "This is likely due to a Pushshift API issue. Please try again later.";
-                                logging.error("Fetch failed:", out);
-                            }
+                            handleShowOriginalEvent(loading, out, post, includeBody);
                         });
                     })
                     .catch(function (err) {
@@ -858,11 +870,74 @@
             });
     }
 
-    // check for new comments when you scroll
-    window.addEventListener("scroll", waitAndFindEditedComments, true);
-
-    // check for new comments when you click
-    document.body.addEventListener("click", waitAndFindEditedComments, true);
+    function showAllOriginalContent() {
+        // get all post ids for show original links
+        const postIds = Array.from(document.querySelectorAll(".showOriginal:not(.showAuthorOnly)[data-post-id]")).map(
+            function (el) {
+                return el.dataset.postId;
+            }
+        );
+        // get all comment ids for show original links
+        const commentIds = postIds.filter(function (postId) {
+            return postId.startsWith("t1_");
+        });
+        // get all submission ids for show original links
+        const submissionIds = postIds.filter(function (postId) {
+            return postId.startsWith("t3_");
+        });
+        // fetch data from pushshift api
+        const submissionsCommaSeparated = submissionIds.join(",");
+        const numberOfSubmissions = submissionIds.length;
+        const commentsCommaSeparated = commentIds.join(",");
+        const numberOfComments = commentIds.length;
+        const submissionURL = `https://api.pushshift.io/reddit/search/submission/?ids=${submissionsCommaSeparated}&size=${numberOfSubmissions}&fields=selftext,author,id,created_utc,permalink`;
+        const commentURL = `https://api.pushshift.io/reddit/search/comment/?ids=${commentsCommaSeparated}&size=${numberOfComments}&fields=body,author,id,link_id,created_utc,permalink`;
+        const URLs = [submissionURL, commentURL];
+        logging.info("Fetching original content from:", URLs);
+        Promise.all(
+            URLs.map(function (url) {
+                return fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "User-Agent": "Unedit and Undelete for Reddit",
+                    },
+                });
+            })
+        )
+            .then((responses) => {
+                return Promise.all(
+                    responses.map((response) => {
+                        if (!response.ok) {
+                            logging.error("Response not ok:", response);
+                            throw Error(response.statusText);
+                        }
+                        try {
+                            return response.json();
+                        } catch (e) {
+                            throw Error(`Invalid JSON Response: ${response}`);
+                        }
+                    })
+                );
+            })
+            .then(function (data) {
+                data.forEach((response) => {
+                    const out = response?.data || [];
+                    logging.info("Response:", { data: out?.data });
+                    out.forEach(function (post) {
+                        const loading = document.querySelector(
+                            `.showOriginal:not(.showAuthorOnly)[data-post-id$="${post.id}"]`
+                        );
+                        if (loading) {
+                            handleShowOriginalEvent(loading, out, post, true);
+                        }
+                    });
+                });
+            })
+            .catch(function (error) {
+                logging.error("Error fetching original content", error);
+            });
+    }
 
     // add additional styling, find edited comments, and set old reddit status on page load
     function init() {
@@ -876,6 +951,16 @@
             "beforeend",
             `<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">`
         );
+        // check for new comments when you scroll
+        window.addEventListener("scroll", waitAndFindEditedComments, true);
+        // check for new comments when you click
+        document.body.addEventListener("click", waitAndFindEditedComments, true);
+        // show all original content when Alt+O is pressed
+        document.body.addEventListener("keydown", function (event) {
+            if (event.altKey && event.key === "o") {
+                showAllOriginalContent();
+            }
+        });
         // Reddit redesign
         if (!isOldReddit) {
             // fix styling of created paragraphs in new reddit
