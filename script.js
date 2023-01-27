@@ -628,10 +628,15 @@
      */
     function createShowAllOriginalLink() {
         const { submissionId } = parseURL();
-        const innerEl = document.querySelector(
-            `[data-url][class*="${submissionId}"] .entry .tagline > span:last-of-type,
-            #t3_${submissionId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type`
-        );
+        let selector = `#t3_${submissionId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type`;
+        if (isOldReddit) {
+            selector = `[data-url][class*="${submissionId}"] .entry .tagline > span:last-of-type`;
+        }
+        if (isCompact) {
+            selector = `[class*="${submissionId}"] > .entry > .tagline > *:last-child`;
+        }
+        const innerEl = document.querySelector(selector);
+        console.log({ innerEl, selector, submissionId });
         if (!submissionId || !innerEl) {
             return;
         }
