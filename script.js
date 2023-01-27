@@ -457,11 +457,12 @@
      * @param {Element} linkEl The link element for showing the status.
      * @param {object} out The response from the API.
      * @param {object} post The archived data of the original comment/post.
+     * @param {string} postId The ID of the original comment/post.
      * @param {Boolean} includeBody Whether or not to include the body of the original comment/post.
      */
-    function handleShowOriginalEvent(linkEl, out, post, includeBody) {
+    function handleShowOriginalEvent(linkEl, out, post, postId, includeBody) {
         // locate comment body
-        const commentBodyElement = getPostBodyElement(post.id);
+        const commentBodyElement = getPostBodyElement(postId);
         // check that comment was fetched and body element exists
         if (!commentBodyElement) {
             // the comment body element was not found
@@ -604,7 +605,7 @@
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
                             logging.info("Response:", { author, id: postId, post, data: out?.data });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
-                            handleShowOriginalEvent(loading, out, post, includeBody);
+                            handleShowOriginalEvent(loading, out, post, postId, includeBody);
                         });
                     })
                     .catch(function (err) {
@@ -616,6 +617,36 @@
             },
             false
         );
+    }
+
+    /**
+     * Create "Show All Original" link
+     */
+    function createShowAllOriginalLink() {
+        const { submissionId } = parseURL();
+        const innerEl = document.querySelector(
+            `[data-url] .entry .tagline > span:last-of-type,
+            #t3_${submissionId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type`
+        );
+        if (!innerEl) {
+            return;
+        }
+        // create link to "Show All Original"
+        const showLinkEl = document.createElement("a");
+        showLinkEl.innerText = "Show All Original";
+        showLinkEl.innerText = "Show All Original";
+        showLinkEl.className = innerEl.className + " showAllOriginal";
+        showLinkEl.style.textDecoration = "underline";
+        showLinkEl.style.cursor = "pointer";
+        showLinkEl.style.marginLeft = "6px";
+        // add float right if in reddit redesign
+        if (!isCompact && !isOldReddit) {
+            showLinkEl.style.float = "right";
+        }
+        showLinkEl.title = "Click to show data for all visible edited or deleted posts or comments";
+        innerEl.parentElement.appendChild(showLinkEl);
+        // click event
+        showLinkEl.addEventListener("click", showAllOriginalContent, false);
     }
 
     /**
@@ -871,28 +902,37 @@
     }
 
     function showAllOriginalContent() {
+        const showAllLink = document.querySelector(".showAllOriginal");
+        if (showAllLink) {
+            showAllLink.innerText = "loading...";
+            showAllLink.title = "Loading all visible edited and deleted content...";
+        }
         // get all post ids for show original links
-        const postIds = Array.from(document.querySelectorAll(".showOriginal:not(.showAuthorOnly)[data-post-id]")).map(
-            function (el) {
-                return el.dataset.postId;
-            }
+        const postIds = Array.from(document.querySelectorAll(".showOriginal[data-post-id]")).map(
+            (el) => el.dataset.postId
         );
         // get all comment ids for show original links
-        const commentIds = postIds.filter(function (postId) {
-            return postId.startsWith("t1_");
+        const commentIds = postIds.filter(function (postId, index) {
+            return postId.startsWith("t1_") && postIds.indexOf(postId) === index;
         });
         // get all submission ids for show original links
-        const submissionIds = postIds.filter(function (postId) {
-            return postId.startsWith("t3_");
+        const submissionIds = postIds.filter(function (postId, index) {
+            return postId.startsWith("t3_") && postIds.indexOf(postId) === index;
         });
         // fetch data from pushshift api
         const submissionsCommaSeparated = submissionIds.join(",");
-        const numberOfSubmissions = submissionIds.length;
         const commentsCommaSeparated = commentIds.join(",");
+        const numberOfSubmissions = submissionIds.length;
         const numberOfComments = commentIds.length;
-        const submissionURL = `https://api.pushshift.io/reddit/search/submission/?ids=${submissionsCommaSeparated}&size=${numberOfSubmissions}&fields=selftext,author,id,created_utc,permalink`;
-        const commentURL = `https://api.pushshift.io/reddit/search/comment/?ids=${commentsCommaSeparated}&size=${numberOfComments}&fields=body,author,id,link_id,created_utc,permalink`;
-        const URLs = [submissionURL, commentURL];
+        let URLs = [];
+        if (numberOfSubmissions > 0) {
+            const submissionURL = `https://api.pushshift.io/reddit/search/submission/?ids=${submissionsCommaSeparated}&size=${numberOfSubmissions}&fields=selftext,author,id,created_utc,permalink`;
+            URLs.push(submissionURL);
+        }
+        if (numberOfComments > 0) {
+            const commentURL = `https://api.pushshift.io/reddit/search/comment/?ids=${commentsCommaSeparated}&size=${numberOfComments}&fields=body,author,id,link_id,created_utc,permalink`;
+            URLs.push(commentURL);
+        }
         logging.info("Fetching original content from:", URLs);
         Promise.all(
             URLs.map(function (url) {
@@ -925,17 +965,29 @@
                     const out = response?.data || [];
                     logging.info("Response:", { data: out?.data });
                     out.forEach(function (post) {
-                        const loading = document.querySelector(
-                            `.showOriginal:not(.showAuthorOnly)[data-post-id$="${post.id}"]`
-                        );
+                        // find the show original links for this post
+                        const allLoading = document.querySelectorAll(`.showOriginal[data-post-id$="${post.id}"]`);
+                        const loading = allLoading[0];
                         if (loading) {
-                            handleShowOriginalEvent(loading, out, post, true);
+                            // if the post id is a comment, we need to add t1_ to the beginning, otherwise t3_
+                            const postId = commentsCommaSeparated.includes(post.id) ? `t1_${post.id}` : `t3_${post.id}`;
+                            handleShowOriginalEvent(loading, out, post, postId, true);
+                            // hide all links for this post
+                            allLoading.forEach((el) => (el.innerText = ""));
                         }
                     });
                 });
+                if (showAllLink) {
+                    showAllLink.innerText = "Show All Original";
+                    showAllLink.title = "Click to show data for all visible edited or deleted posts or comments";
+                }
             })
             .catch(function (error) {
                 logging.error("Error fetching original content", error);
+                if (showAllLink) {
+                    showAllLink.innerText = "fetch failed";
+                    showAllLink.title = "An error occurred while fetching original content";
+                }
             });
     }
 
@@ -955,12 +1007,14 @@
         window.addEventListener("scroll", waitAndFindEditedComments, true);
         // check for new comments when you click
         document.body.addEventListener("click", waitAndFindEditedComments, true);
-        // show all original content when Alt+O is pressed
+        // show all original content when Ctrl+Alt+O is pressed
         document.body.addEventListener("keydown", function (event) {
-            if (event.altKey && event.key === "o") {
+            if (event.ctrlKey && event.altKey && event.key === "o") {
                 showAllOriginalContent();
             }
         });
+        // add "Show All Original" link to the post
+        createShowAllOriginalLink();
         // Reddit redesign
         if (!isOldReddit) {
             // fix styling of created paragraphs in new reddit
