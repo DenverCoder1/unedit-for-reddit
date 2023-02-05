@@ -636,7 +636,6 @@
             selector = `[class*="${submissionId}"] > .entry > .tagline > *:last-child`;
         }
         const innerEl = document.querySelector(selector);
-        console.log({ innerEl, selector, submissionId });
         if (!submissionId || !innerEl) {
             return;
         }
