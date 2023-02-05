@@ -642,7 +642,6 @@
         // create link to "Show All Original"
         const showLinkEl = document.createElement("a");
         showLinkEl.innerText = "Show All Original";
-        showLinkEl.innerText = "Show All Original";
         showLinkEl.className = innerEl.className + " showAllOriginal";
         showLinkEl.style.textDecoration = "underline";
         showLinkEl.style.cursor = "pointer";
