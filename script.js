@@ -7,6 +7,7 @@
 // @grant        none
 // @require      https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
 // @license      MIT
+// @icon         https://raw.githubusercontent.com/DenverCoder1/unedit-for-reddit/master/images/logo512.png
 // @match        https://*.reddit.com/
 // @match        https://*.reddit.com/me/f/*
 // @match        https://*.reddit.com/message/*
