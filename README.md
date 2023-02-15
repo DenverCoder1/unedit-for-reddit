@@ -74,6 +74,13 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.16.3
+
+-   Added support for `[ Removed by Reddit ]` comments in moderator view
+-   Added icon to Userscript metadata
+-   Added more error handling for Pushshift API issues
+-   Prevent class names from being added to user flairs on old Reddit
+
 ### Changes in 3.16.2
 
 -   Updated manifest v2 permissions list for Firefox 109 support
