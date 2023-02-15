@@ -751,8 +751,8 @@
         else {
             selectors = [
                 ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
-                ".entry p.tagline em:not(.found), .entry .tagline span:first-of-type:not(.found)", // Comment "[deleted]" author
-                "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
+                ".entry p.tagline em:not(.found), .entry .tagline span:first-of-type:not(.flair):not(.found)", // Comment "[deleted]" author
+                "div[data-url] p.tagline span:first-of-type:not(.flair):not(.found)", // Submission "[deleted]" author
                 "div[data-url] .usertext-body em:not(.found), form.usertext em:not(.found)", // Submission "[removed]" body
                 ".entry .usertext .usertext-body > div.md > p:only-child:not(.found)", // Comment "[unavailable]" body
                 "p#noresults", // "there doesn't seem to be anything here" page
