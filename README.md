@@ -51,6 +51,8 @@ This script can be installed on most browsers using userscript browser extension
 
 Alternatively, you may copy the contents of [`script.js`](https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/script.js) into a new script using any userscript browser extension.
 
+> **Note**: Some userscript engines such as Bromite and base Chromium do not support `@require` (see [here](https://www.chromium.org/developers/design-documents/user-scripts/)). In order to get this userscript to work without a dedicated extension, you will need to copy-paste the contents of [`showdown.min.js`](https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js) at the top of the script, just below the `// ==/UserScript==` line.
+
 ### As a Chrome Extension
 
 Install from the [Chrome Web Store](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka), or alternatively, download or clone this repository, enable "Developer mode" at <chrome://extensions/>, and load the folder unpacked.
