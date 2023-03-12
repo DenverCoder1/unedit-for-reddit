@@ -1041,7 +1041,7 @@
                         font-size: 14px;
                         padding: 16px;
                         line-height: 20px;
-                        border-radius: 20px;
+                        border-radius: 7px;
                     }
                     p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og pre, p.og :not(pre)>code, p.og div {
                         color: black !important;
