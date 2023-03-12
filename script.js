@@ -898,7 +898,7 @@
                         font-size: 14px;
                         padding: 16px;
                         line-height: 20px;
-                        border-radius: 20px;
+                        border-radius: 4px;
                         width: auto;
                         width: -moz-available;
                         width: -webkit-fill-available;
