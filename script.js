@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.16.3
+// @version      3.16.4
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @grant        none
@@ -590,8 +590,18 @@
                                 logging.warn("No matching post:", out);
                             } else {
                                 // other issue occurred with displaying comment
+                                if (loading.innerText === "fetch failed" && loading.parentElement.querySelector(".pushshift-link") === null) {
+                                    const linkToPushshift = document.createElement("a");
+                                    linkToPushshift.target = "_blank";
+                                    linkToPushshift.style = "text-decoration: underline; cursor: pointer; margin-left: 6px; font-style: normal; font-weight: bold; color: #e5766e;";
+                                    linkToPushshift.className = loading.className;
+                                    linkToPushshift.classList.add("pushshift-link");
+                                    linkToPushshift.href = "https://www.reddit.com/r/pushshift/comments/13508r9/pushshift_no_longer_has_access_to_the_reddit_api/";
+                                    linkToPushshift.innerText = "CHECK r/PUSHSHIFT FOR MORE INFO";
+                                    loading.parentElement.appendChild(linkToPushshift);
+                                }
                                 loading.innerText = "fetch failed";
-                                loading.title = "This is likely due to a Pushshift API issue. Please try again later.";
+                                loading.title = "This is likely due to a Pushshift API issue. Please check r/pushshift for updates.";
                                 logging.error("Fetch failed:", out);
                             }
                         });
