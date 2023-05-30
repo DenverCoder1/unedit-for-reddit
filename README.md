@@ -76,6 +76,11 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.16.4
+
+-   Added link to r/pushshift issue post in fetch failed message
+-   Added rounded corners for the original comment box
+
 ### Changes in 3.16.3
 
 -   Added support for `[ Removed by Reddit ]` comments in moderator view

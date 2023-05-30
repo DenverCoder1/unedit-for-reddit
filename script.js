@@ -36,7 +36,7 @@
      * The current version of the script
      * @type {string}
      */
-    const VERSION = "3.16.3";
+    const VERSION = "3.16.4";
 
     /**
      * Whether or not we are on old reddit and not redesign.
