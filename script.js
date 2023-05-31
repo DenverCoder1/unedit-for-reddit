@@ -82,6 +82,13 @@
     let currentURL = window.location.href;
 
     /**
+     * JSON list of posts in the current page from the Reddit API.
+     * This is set in checkForEditedSubmissions().
+     * @type {Object}
+     */
+    let postsFromRedditJSON = [];
+
+    /**
      * Showdown markdown converter
      * @type {showdown.Converter}
      */
@@ -454,6 +461,36 @@
     }
 
     /**
+     * Convert Reddit API JSON to a list of posts.
+     * 
+     * @param {object} json The JSON response from the Reddit API.
+     * @returns {object} The converted JSON.
+     */
+    function convertRedditResponse(json) {
+        data = [];
+        function addListings(obj) {
+            const id = obj?.data?.name || obj?.data?.id;
+            if (id && obj?.data?.selftext) {
+                const { author, selftext, created_utc, permalink } = obj.data;
+                data.push({ id, author, selftext, created_utc, permalink });
+            } else if (id && obj?.data?.body) {
+                const { author, body, link_id, created_utc, permalink } = obj.data;
+                data.push({ id, author, body, link_id, created_utc, permalink });
+            }
+            const children = obj?.data?.children || obj?.data?.replies?.data?.children;
+            if (children) {
+                children.forEach(addListings);
+            }
+        }
+        if (json?.forEach) {
+            json.forEach(addListings);
+        } else {
+            addListings(json);
+        }
+        return { data };
+    }
+
+    /**
      * Create a link to view the original comment/post.
      * @param {Element} innerEl An element inside the comment or post to create a link for.
      */
@@ -551,6 +588,10 @@
                             // exit if already found
                             if (loading.innerText === "") {
                                 return;
+                            }
+                            // convert reddit API response to pushshift API response format
+                            if (!out) {
+                                out = postsFromRedditJSON;
                             }
                             // locate comment body
                             const commentBodyElement = getPostBodyElement(postId);
@@ -852,6 +893,7 @@
                 return response.json();
             })
             .then(function (data) {
+                postsFromRedditJSON = convertRedditResponse(data);
                 logging.info("Response:", data);
                 const out = data?.length ? data[0] : data;
                 const children = out?.data?.children;
