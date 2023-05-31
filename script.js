@@ -510,6 +510,16 @@
                         URLs.push(parentURL);
                     }
                 }
+                // add redarc.basedbin.org as a source if the subreddit is r/DataHoarder
+                if (/r\/DataHoarder/i.test(currentURL)) {
+                    const parsedURL = parseURL();
+                    if (parsedURL.submissionId) {
+                        const redarcURL = isInSubmission(this)
+                            ? `http://redarc.basedbin.org/api/search/submissions?id=t3_${parsedURL.submissionId}`
+                            : `http://redarc.basedbin.org/api/search/comments?link_id=t3_${parsedURL.submissionId}`;
+                        URLs.push(redarcURL);
+                    }
+                }
 
                 // set loading status
                 currentLoading = this;
@@ -552,11 +562,17 @@
                             if (loading.innerText === "") {
                                 return;
                             }
+                            const data = out?.data || out;
+                            console.log("data", data);
                             // locate comment body
                             const commentBodyElement = getPostBodyElement(postId);
-                            const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            logging.info("Response:", { author, id: postId, post, data: out?.data });
+                            const post = data?.find((p) => p?.id === postId?.split("_").pop());
+                            logging.info("Response:", { author, id: postId, post, data });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
+                            // rename "self_text" to "selftext" for compatibility with pushshift api
+                            if (typeof post?.self_text === "string") {
+                                post.selftext = post.self_text;
+                            }
                             // check that comment was fetched and body element exists
                             if (!commentBodyElement) {
                                 // the comment body element was not found
@@ -578,12 +594,12 @@
                                 loading.innerText = "";
                                 loading.removeAttribute("title");
                                 logging.info("Successfully loaded post.");
-                            } else if (out?.data?.length === 0) {
+                            } else if (data?.length === 0) {
                                 // data was returned empty
                                 loading.innerText = "not found";
                                 loading.title = "No matching results were found in the Pushshift archive.";
                                 logging.warn("No results:", out);
-                            } else if (out?.data?.length > 0) {
+                            } else if (data?.length > 0) {
                                 // no matching comment/post was found in the data
                                 loading.innerText = "not found";
                                 loading.title = "The comment/post was not found in the Pushshift archive.";
