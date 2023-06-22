@@ -460,9 +460,8 @@
      * @param {object} post The archived data of the original comment/post.
      * @param {string} postId The ID of the original comment/post.
      * @param {Boolean} includeBody Whether or not to include the body of the original comment/post.
-     * @param {Element} loading The loading link element.
      */
-    function handleShowOriginalEvent(linkEl, out, post, postId, includeBody, loading) {
+    function handleShowOriginalEvent(linkEl, out, post, postId, includeBody) {
         // locate comment body
         const commentBodyElement = getPostBodyElement(postId);
         // check that comment was fetched and body element exists
@@ -498,18 +497,18 @@
             logging.warn("No matching post:", out);
         } else {
             // other issue occurred with displaying comment
-            if (loading.innerText === "fetch failed" && loading.parentElement.querySelector(".pushshift-link") === null) {
+            if (linkEl.innerText === "fetch failed" && linkEl.parentElement.querySelector(".pushshift-link") === null) {
                 const linkToPushshift = document.createElement("a");
                 linkToPushshift.target = "_blank";
                 linkToPushshift.style = "text-decoration: underline; cursor: pointer; margin-left: 6px; font-style: normal; font-weight: bold; color: #e5766e;";
-                linkToPushshift.className = loading.className;
+                linkToPushshift.className = linkEl.className;
                 linkToPushshift.classList.add("pushshift-link");
                 linkToPushshift.href = "https://www.reddit.com/r/pushshift/comments/13508r9/pushshift_no_longer_has_access_to_the_reddit_api/";
                 linkToPushshift.innerText = "CHECK r/PUSHSHIFT FOR MORE INFO";
-                loading.parentElement.appendChild(linkToPushshift);
+                linkEl.parentElement.appendChild(linkToPushshift);
             }
-            loading.innerText = "fetch failed";
-            loading.title = "This is likely due to a Pushshift API issue. Please check r/pushshift for updates.";
+            linkEl.innerText = "fetch failed";
+            linkEl.title = "This is likely due to a Pushshift API issue. Please check r/pushshift for updates.";
             logging.error("Fetch failed:", out);
         }
     }
@@ -621,7 +620,7 @@
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
                             logging.info("Response:", { author, id: postId, post, data: out?.data });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
-                            handleShowOriginalEvent(loading, out, post, postId, includeBody, loading);
+                            handleShowOriginalEvent(loading, out, post, postId, includeBody);
                         });
                     })
                     .catch(function (err) {
@@ -998,7 +997,7 @@
                         if (loading) {
                             // if the post id is a comment, we need to add t1_ to the beginning, otherwise t3_
                             const postId = commentsCommaSeparated.includes(post.id) ? `t1_${post.id}` : `t3_${post.id}`;
-                            handleShowOriginalEvent(loading, out, post, postId, true, loading);
+                            handleShowOriginalEvent(loading, out, post, postId, true);
                             // hide all links for this post
                             allLoading.forEach((el) => (el.innerText = ""));
                         }
