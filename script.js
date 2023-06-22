@@ -614,6 +614,7 @@
                                     }
                                     // unhide token container if token is missing or invalid
                                     if (out?.detail) {
+                                        const tokenContainer = document.querySelector("#tokenContainer");
                                         tokenContainer.style.display = "block";
                                     }
                                 }
