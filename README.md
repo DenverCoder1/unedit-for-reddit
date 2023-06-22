@@ -19,13 +19,13 @@
 
 > **Warning**
 > 
-> The Pushshift Data API is undergoing changes as [announced here](https://old.reddit.com/r/pushshift/comments/zhzaea/the_day_has_finally_arrived_pushshift_api_move/).
-> There is also an update [here](https://old.reddit.com/r/pushshift/comments/zk1jyw/link_id_signed_integer_overflow_bugs_in_pushshift/izxv6vg/).
+> The Pushshift Data API is no longer able to ingest new data as [announced here](https://www.reddit.com/r/pushshift/comments/13508r9/pushshift_no_longer_has_access_to_the_reddit_api/).
+> 
 > Checking [r/pushshift](https://www.reddit.com/r/pushshift) for updates is recommended.
 > 
-> Since Unedit and Undelete for Reddit relies on Pushshift to work, you may experience some issues over the next few days which are unavoidable.
+> Since Unedit and Undelete for Reddit relies on Pushshift to work, you may experience some issues which are unavoidable.
 > 
->   12/12/2022
+>   May 2, 2023
 
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
 
@@ -51,6 +51,8 @@ This script can be installed on most browsers using userscript browser extension
 
 Alternatively, you may copy the contents of [`script.js`](https://github.com/DenverCoder1/Unedit-for-Reddit/blob/master/script.js) into a new script using any userscript browser extension.
 
+> **Note**: Some userscript engines such as Bromite and base Chromium do not support `@require` (see [here](https://www.chromium.org/developers/design-documents/user-scripts/)). In order to get this userscript to work without a dedicated extension, you will need to copy-paste the contents of [`showdown.min.js`](https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js) at the top of the script, just below the `// ==/UserScript==` line.
+
 ### As a Chrome Extension
 
 Install from the [Chrome Web Store](https://chrome.google.com/webstore/detail/unedit-and-undelete-for-r/cnpmnmpafbfojcoofaobmhmafiflgmka), or alternatively, download or clone this repository, enable "Developer mode" at <chrome://extensions/>, and load the folder unpacked.
@@ -73,6 +75,18 @@ The following are known limitations that cannot be fixed:
 -   If the Pushshift API is temporarily down or partially down, the message "fetch failed" may appear.
 
 ## Changelog
+
+### Changes in 3.16.4
+
+-   Added link to r/pushshift issue post in fetch failed message
+-   Added rounded corners for the original comment box
+
+### Changes in 3.16.3
+
+-   Added support for `[ Removed by Reddit ]` comments in moderator view
+-   Added icon to Userscript metadata
+-   Added more error handling for Pushshift API issues
+-   Prevent class names from being added to user flairs on old Reddit
 
 ### Changes in 3.16.2
 

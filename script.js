@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.16.2
+// @version      3.16.4
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @grant        none
 // @require      https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
 // @license      MIT
+// @icon         https://raw.githubusercontent.com/DenverCoder1/unedit-for-reddit/master/images/logo512.png
 // @match        https://*.reddit.com/
 // @match        https://*.reddit.com/me/f/*
 // @match        https://*.reddit.com/message/*
@@ -35,7 +36,7 @@
      * The current version of the script
      * @type {string}
      */
-    const VERSION = "3.16.2";
+    const VERSION = "3.16.4";
 
     /**
      * Whether or not we are on old reddit and not redesign.
@@ -459,8 +460,9 @@
      * @param {object} post The archived data of the original comment/post.
      * @param {string} postId The ID of the original comment/post.
      * @param {Boolean} includeBody Whether or not to include the body of the original comment/post.
+     * @param {Element} loading The loading link element.
      */
-    function handleShowOriginalEvent(linkEl, out, post, postId, includeBody) {
+    function handleShowOriginalEvent(linkEl, out, post, postId, includeBody, loading) {
         // locate comment body
         const commentBodyElement = getPostBodyElement(postId);
         // check that comment was fetched and body element exists
@@ -496,8 +498,18 @@
             logging.warn("No matching post:", out);
         } else {
             // other issue occurred with displaying comment
-            linkEl.innerText = "fetch failed";
-            linkEl.title = "This is likely due to a Pushshift API issue. Please try again later.";
+            if (loading.innerText === "fetch failed" && loading.parentElement.querySelector(".pushshift-link") === null) {
+                const linkToPushshift = document.createElement("a");
+                linkToPushshift.target = "_blank";
+                linkToPushshift.style = "text-decoration: underline; cursor: pointer; margin-left: 6px; font-style: normal; font-weight: bold; color: #e5766e;";
+                linkToPushshift.className = loading.className;
+                linkToPushshift.classList.add("pushshift-link");
+                linkToPushshift.href = "https://www.reddit.com/r/pushshift/comments/13508r9/pushshift_no_longer_has_access_to_the_reddit_api/";
+                linkToPushshift.innerText = "CHECK r/PUSHSHIFT FOR MORE INFO";
+                loading.parentElement.appendChild(linkToPushshift);
+            }
+            loading.innerText = "fetch failed";
+            loading.title = "This is likely due to a Pushshift API issue. Please check r/pushshift for updates.";
             logging.error("Fetch failed:", out);
         }
     }
@@ -609,7 +621,7 @@
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
                             logging.info("Response:", { author, id: postId, post, data: out?.data });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
-                            handleShowOriginalEvent(loading, out, post, postId, includeBody);
+                            handleShowOriginalEvent(loading, out, post, postId, includeBody, loading);
                         });
                     })
                     .catch(function (err) {
@@ -717,10 +729,11 @@
                 if (el.children.length) {
                     return false;
                 }
-                // the only messages we care about in a P element right now is "[unavailable]" or "That Comment Is Missing"
+                // there are only specific phrases we care about in a P element
                 if (
                     el.tagName === "P" &&
                     el.innerText !== "[unavailable]" &&
+                    el.innerText !== "[ Removed by Reddit ]" &&
                     el.innerText !== "That Comment Is Missing"
                 ) {
                     return false;
@@ -738,6 +751,7 @@
                     el.innerText.substring(0, 30) === "It doesn't appear in any feeds" || // include deleted submissions
                     el.innerText.substring(0, 23) === "Moderators remove posts" || // include submissions removed by moderators
                     isUnavailable || // include unavailable comments (blocked by user)
+                    el.innerText === "[ Removed by Reddit ]" || // include comments removed by Reddit
                     el.innerText === "That Comment Is Missing" || // include comments not found in comment tree
                     el.innerText.substring(0, 29) === "Sorry, this post is no longer"; // include unavailable submissions (blocked by user)
                 const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
@@ -799,8 +813,8 @@
         else {
             selectors = [
                 ".entry p.tagline time:not(.found)", // Comment or Submission "last edited" timestamp
-                ".entry p.tagline em:not(.found), .entry .tagline span:first-of-type:not(.found)", // Comment "[deleted]" author
-                "div[data-url] p.tagline span:first-of-type:not(.found)", // Submission "[deleted]" author
+                ".entry p.tagline em:not(.found), .entry .tagline span:first-of-type:not(.flair):not(.found)", // Comment "[deleted]" author
+                "div[data-url] p.tagline span:first-of-type:not(.flair):not(.found)", // Submission "[deleted]" author
                 "div[data-url] .usertext-body em:not(.found), form.usertext em:not(.found)", // Submission "[removed]" body
                 ".entry .usertext .usertext-body > div.md > p:only-child:not(.found)", // Comment "[unavailable]" body
                 "p#noresults", // "there doesn't seem to be anything here" page
@@ -809,7 +823,12 @@
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
                 // The only messages we care about in a P element right now is "[unavailable]" or #noresults
-                if (el.tagName === "P" && el.innerText !== "[unavailable]" && el.id !== "noresults") {
+                if (
+                    el.tagName === "P" &&
+                    el.innerText !== "[unavailable]" &&
+                    el.innerText !== "[ Removed by Reddit ]" &&
+                    el.id !== "noresults"
+                ) {
                     return false;
                 }
                 // include "[unavailable]" comments (blocked by user) if from a deleted user
@@ -820,6 +839,7 @@
                     el.title.substring(0, 11) === "last edited" || // include edited comments or submissions
                     el.innerText === "[deleted]" || // include comments or submissions deleted by user
                     el.innerText === "[removed]" || // include comments or submissions removed by moderator
+                    el.innerText === "[ Removed by Reddit ]" || // include comments or submissions removed by Reddit
                     el.id === "noresults" || // include "there doesn't seem to be anything here" page
                     isUnavailable; // include unavailable submissions (blocked by user)
                 // if the element is a deleted author and not edited or removed, only show the deleted author
@@ -978,7 +998,7 @@
                         if (loading) {
                             // if the post id is a comment, we need to add t1_ to the beginning, otherwise t3_
                             const postId = commentsCommaSeparated.includes(post.id) ? `t1_${post.id}` : `t3_${post.id}`;
-                            handleShowOriginalEvent(loading, out, post, postId, true);
+                            handleShowOriginalEvent(loading, out, post, postId, true, loading);
                             // hide all links for this post
                             allLoading.forEach((el) => (el.innerText = ""));
                         }
@@ -1033,6 +1053,7 @@
                         font-size: 14px;
                         padding: 16px;
                         line-height: 20px;
+                        border-radius: 4px;
                         width: auto;
                         width: -moz-available;
                         width: -webkit-fill-available;
@@ -1175,6 +1196,7 @@
                         font-size: 14px;
                         padding: 16px;
                         line-height: 20px;
+                        border-radius: 7px;
                     }
                     p.og p, p.og h1, p.og h2, p.og h3, p.og h4, p.og h5, p.og h6, p.og pre, p.og :not(pre)>code, p.og div {
                         color: black !important;
