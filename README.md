@@ -76,6 +76,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.17.0
+
+-   Added support for Pushshift API token authentication
+
 ### Changes in 3.16.4
 
 -   Added link to r/pushshift issue post in fetch failed message
