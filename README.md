@@ -18,14 +18,14 @@
 </center>
 
 > **Warning**
+>
+> Unedit and Undelete for Reddit relies on Pushshift to work.
 > 
-> The Pushshift Data API is no longer able to ingest new data as [announced here](https://www.reddit.com/r/pushshift/comments/13508r9/pushshift_no_longer_has_access_to_the_reddit_api/).
-> 
+> At this time, Pushshift is only available to approved moderators as announced [here](https://redd.it/14ei799).
+>
 > Checking [r/pushshift](https://www.reddit.com/r/pushshift) for updates is recommended.
-> 
-> Since Unedit and Undelete for Reddit relies on Pushshift to work, you may experience some issues which are unavoidable.
-> 
->   May 2, 2023
+>
+> June 22, 2023
 
 Creates a link next to edited and deleted Reddit comments and submissions to show the original post from before it was edited/removed.
 
