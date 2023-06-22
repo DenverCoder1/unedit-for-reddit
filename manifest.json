@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Unedit and Undelete for Reddit",
     "description": "Show original comments and posts from before they were edited or removed",
-    "version": "3.16.4",
+    "version": "3.17.0",
     "content_scripts": [
         {
             "run_at": "document_idle",

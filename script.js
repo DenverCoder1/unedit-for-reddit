@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.16.4
+// @version      3.17.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @grant        none
@@ -36,7 +36,7 @@
      * The current version of the script
      * @type {string}
      */
-    const VERSION = "3.16.4";
+    const VERSION = "3.17.0";
 
     /**
      * Whether or not we are on old reddit and not redesign.
@@ -518,6 +518,8 @@
 
                 logging.info(`Fetching from ${URLs.join(" and ")}`);
 
+                const token = document.querySelector("#apiToken").value;
+
                 // request from pushshift api
                 await Promise.all(
                     URLs.map((url) =>
@@ -526,12 +528,13 @@
                             headers: {
                                 "Content-Type": "application/json",
                                 "User-Agent": "Unedit and Undelete for Reddit",
+                                accept: "application/json",
+                                Authorization: `Bearer ${token}`,
                             },
                         })
                             .then((response) => {
                                 if (!response.ok) {
                                     logging.error("Response not ok:", response);
-                                    throw Error(response.statusText);
                                 }
                                 try {
                                     return response.json();
@@ -590,18 +593,32 @@
                                 logging.warn("No matching post:", out);
                             } else {
                                 // other issue occurred with displaying comment
-                                if (loading.innerText === "fetch failed" && loading.parentElement.querySelector(".pushshift-link") === null) {
-                                    const linkToPushshift = document.createElement("a");
+                                if (loading.innerText === "fetch failed") {
+                                    const errorLink = loading.parentElement.querySelector(".error-link");
+                                    const linkToPushshift = errorLink || document.createElement("a");
                                     linkToPushshift.target = "_blank";
-                                    linkToPushshift.style = "text-decoration: underline; cursor: pointer; margin-left: 6px; font-style: normal; font-weight: bold; color: #e5766e;";
+                                    linkToPushshift.style = `text-decoration: underline;
+                                                            cursor: pointer;
+                                                            margin-left: 6px;
+                                                            font-style: normal;
+                                                            font-weight: bold;
+                                                            color: #e5766e;`;
                                     linkToPushshift.className = loading.className;
-                                    linkToPushshift.classList.add("pushshift-link");
-                                    linkToPushshift.href = "https://www.reddit.com/r/pushshift/comments/13508r9/pushshift_no_longer_has_access_to_the_reddit_api/";
-                                    linkToPushshift.innerText = "CHECK r/PUSHSHIFT FOR MORE INFO";
-                                    loading.parentElement.appendChild(linkToPushshift);
+                                    linkToPushshift.classList.add("error-link");
+                                    linkToPushshift.href = out?.detail
+                                        ? "https://api.pushshift.io/signup"
+                                        : "https://www.reddit.com/r/pushshift/";
+                                    linkToPushshift.innerText = out?.detail || "CHECK r/PUSHSHIFT FOR MORE INFO";
+                                    if (errorLink === null) {
+                                        loading.parentElement.appendChild(linkToPushshift);
+                                    }
+                                    // unhide token container if token is missing or invalid
+                                    if (out?.detail) {
+                                        tokenContainer.style.display = "block";
+                                    }
                                 }
                                 loading.innerText = "fetch failed";
-                                loading.title = "This is likely due to a Pushshift API issue. Please check r/pushshift for updates.";
+                                loading.title = "A Pushshift error occurred. Please check r/pushshift for updates.";
                                 logging.error("Fetch failed:", out);
                             }
                         });
@@ -1097,6 +1114,95 @@
         }
         // find edited comments
         findEditedComments();
+
+        // create an input field in the bottom right corner of the screen for the api token
+        document.head.insertAdjacentHTML(
+            "beforeend",
+            `<style>
+                #apiToken {
+                    width: 300px;
+                    padding: 5px;
+                }
+                #requestTokenLink {
+                    color: white;
+                    border-radius: 3px;
+                    margin-left: 5px;
+                }
+                #saveButton {
+                    background: #2D3133;
+                    color: white;
+                    border-radius: 3px;
+                    padding: 5px;
+                    margin-left: 5px;
+                    border: none;
+                    cursor: pointer;
+                }
+                #saveButton:hover {
+                    background: #545452;
+                }
+                #saveButton:active {
+                    background: #2D3133;
+                }
+                #closeButton {
+                    margin-left: 5px;
+                    border-radius: 5px;
+                    color: rgb(255, 255, 255);
+                    padding: 5px;
+                    background: transparent;
+                    border: 0;
+                    cursor: pointer;
+                }
+                #tokenContainer {
+                    position: fixed;
+                    bottom: 0;
+                    right: 0;
+                    z-index: 999999999;
+                    padding: 6px;
+                    background: #CC3700;
+                    border-radius: 5px;
+                }
+            </style>`
+        );
+        const tokenInput = document.createElement("input");
+        tokenInput.type = "text";
+        tokenInput.id = "apiToken";
+        tokenInput.placeholder = "Pushshift API Token";
+        // if there is a token saved in local storage, use it
+        if (localStorage.getItem("apiToken")) {
+            tokenInput.value = localStorage.getItem("apiToken");
+        }
+        const requestTokenLink = document.createElement("a");
+        requestTokenLink.href = "https://api.pushshift.io/signup";
+        requestTokenLink.target = "_blank";
+        requestTokenLink.rel = "noopener noreferrer";
+        requestTokenLink.textContent = "Request Token";
+        requestTokenLink.id = "requestTokenLink";
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "Save";
+        saveButton.id = "saveButton";
+        saveButton.addEventListener("click", function () {
+            // save in local storage
+            localStorage.setItem("apiToken", tokenInput.value);
+        });
+        tokenInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                saveButton.click();
+            }
+        });
+        const closeButton = document.createElement("button");
+        closeButton.textContent = "\u00D7"; // times symbol
+        closeButton.id = "closeButton";
+        closeButton.addEventListener("click", function () {
+            // set the token container to display none
+            tokenContainer.style.display = "none";
+        });
+        const tokenContainer = document.createElement("div");
+        tokenContainer.id = "tokenContainer";
+        tokenContainer.appendChild(tokenInput);
+        tokenContainer.appendChild(saveButton);
+        tokenContainer.appendChild(requestTokenLink);
+        tokenContainer.appendChild(closeButton);
+        document.body.appendChild(tokenContainer);
     }
 
     // if the window is loaded, run init(), otherwise wait for it to load
