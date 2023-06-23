@@ -552,7 +552,6 @@
         // find id of selected comment or submission
         const postId = getPostId(showLinkEl);
         showLinkEl.alt = `View original post for ID ${postId}`;
-        showLinkEl.dataset.postId = postId;
         if (!postId) {
             showLinkEl.parentElement.removeChild(showLinkEl);
         }
