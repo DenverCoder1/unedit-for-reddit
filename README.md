@@ -76,9 +76,14 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.17.3
+
+-   Make inline fetch fix only apply to Firefox
+-   Store hidden state of token container so it is hidden if previously closed (will reopen if token is used and is invalid)
+
 ### Changes in 3.17.2
 
--   Fixed an unsafe inline issue in Chrome from the previous version (not released on Chrome)
+-   ~~Fixed an unsafe inline issue in Chrome from previous version (not released on Chrome)~~
 
 ### Changes in 3.17.1
 
