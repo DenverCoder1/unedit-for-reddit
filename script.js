@@ -546,11 +546,11 @@
         responseContainer.id = "responseContainer" + Math.floor(Math.random() * Math.pow(10, 10));
         responseContainer.style.display = "none";
         document.body.appendChild(responseContainer);
-        const temp = document.createElement("a");
-        temp.id = "temp";
-        temp.style.display = "none";
-        document.body.appendChild(temp);
-        temp.href = `javascript:fetch("${url}", ${JSON.stringify(options)})
+        const temp = document.createElement("button");
+        temp.setAttribute("type", "button");
+        temp.setAttribute(
+            "onclick",
+            `fetch("${url}", ${JSON.stringify(options)})
             .then(r => {
                 document.querySelector("#${responseContainer.id}").innerText = JSON.stringify({
                     ok: r.ok,
@@ -560,7 +560,10 @@
                 });
                 return r.text();
             })
-            .then(t => document.querySelector("#${outputContainer.id}").innerText = t)`;
+            .then(t => document.querySelector("#${outputContainer.id}").innerText = t)`
+        );
+        temp.style.display = "none";
+        document.body.appendChild(temp);
         temp.click();
         // wait for fetch to complete and return a promise
         return new Promise((resolve) => {
