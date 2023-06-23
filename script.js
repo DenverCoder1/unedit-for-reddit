@@ -529,6 +529,65 @@
     }
 
     /**
+     * Fetch alternative that runs fetch from the window context using a helper element.
+     *
+     * This is necessary because in Firefox the headers are not sent when running fetch from the addon context.
+     *
+     * @param {string} url The URL to fetch.
+     * @param {object} options The options to pass to fetch.
+     * @returns {Promise} The fetch promise.
+     */
+    function fetchAlt(url, options) {
+        const outputContainer = document.createElement("div");
+        outputContainer.id = "outputContainer" + Math.floor(Math.random() * Math.pow(10, 10));
+        outputContainer.style.display = "none";
+        document.body.appendChild(outputContainer);
+        const responseContainer = document.createElement("div");
+        responseContainer.id = "responseContainer" + Math.floor(Math.random() * Math.pow(10, 10));
+        responseContainer.style.display = "none";
+        document.body.appendChild(responseContainer);
+        const temp = document.createElement("a");
+        temp.id = "temp";
+        temp.style.display = "none";
+        document.body.appendChild(temp);
+        temp.href = `javascript:fetch("${url}", ${JSON.stringify(options)})
+            .then(r => {
+                document.querySelector("#${responseContainer.id}").innerText = JSON.stringify({
+                    ok: r.ok,
+                    status: r.status,
+                    statusText: r.statusText,
+                    headers: Object.fromEntries(r.headers.entries()),
+                });
+                return r.text();
+            })
+            .then(t => document.querySelector("#${outputContainer.id}").innerText = t)`;
+        temp.click();
+        // wait for fetch to complete and return a promise
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (outputContainer.innerText && responseContainer.innerText) {
+                    clearInterval(interval);
+                    const responseData = JSON.parse(responseContainer.innerText);
+                    const mockResponse = {
+                        text: () => outputContainer.innerText,
+                        json: () => JSON.parse(outputContainer.innerText),
+                        ok: responseData.ok,
+                        status: responseData.status,
+                        statusText: responseData.statusText,
+                        headers: {
+                            get: (header) => responseData.headers[header],
+                        },
+                    };
+                    resolve(mockResponse);
+                    outputContainer.remove();
+                    responseContainer.remove();
+                    temp.remove();
+                }
+            }, 100);
+        });
+    }
+
+    /**
      * Create a link to view the original comment/post.
      * @param {Element} innerEl An element inside the comment or post to create a link for.
      */
@@ -598,7 +657,7 @@
                 // request from pushshift api
                 await Promise.all(
                     URLs.map((url) =>
-                        fetch(url, {
+                        fetchAlt(url, {
                             method: "GET",
                             headers: {
                                 "Content-Type": "application/json",
@@ -868,7 +927,7 @@
         const [url, query] = window.location.href.split("?");
         const jsonUrl = `${url}.json` + (query ? `?${query}` : "");
         logging.info(`Fetching additional info from ${jsonUrl}`);
-        fetch(jsonUrl, {
+        fetchAlt(jsonUrl, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
