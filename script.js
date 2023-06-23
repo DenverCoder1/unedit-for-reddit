@@ -520,6 +520,7 @@
                 if (out?.detail) {
                     const tokenContainer = document.querySelector("#tokenContainer");
                     tokenContainer.style.display = "block";
+                    localStorage.setItem("hideTokenContainer", "false");
                 }
             }
             linkEl.innerText = "fetch failed";
@@ -1267,16 +1268,22 @@
         const closeButton = document.createElement("button");
         closeButton.textContent = "\u00D7"; // times symbol
         closeButton.id = "closeButton";
-        closeButton.addEventListener("click", function () {
-            // set the token container to display none
-            tokenContainer.style.display = "none";
-        });
         const tokenContainer = document.createElement("div");
         tokenContainer.id = "tokenContainer";
         tokenContainer.appendChild(tokenInput);
         tokenContainer.appendChild(saveButton);
         tokenContainer.appendChild(requestTokenLink);
         tokenContainer.appendChild(closeButton);
+        closeButton.addEventListener("click", function () {
+            // set the token container to display none
+            tokenContainer.style.display = "none";
+            // save preference in local storage
+            localStorage.setItem("hideTokenContainer", "true");
+        });
+        // if the user has hidden the token container before, hide it again
+        if (localStorage.getItem("hideTokenContainer") === "true") {
+            tokenContainer.style.display = "none";
+        }
         document.body.appendChild(tokenContainer);
 
         // switch from fetch to inlineFetch if browser is Firefox
