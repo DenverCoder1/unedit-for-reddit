@@ -632,7 +632,7 @@
                                 return;
                             }
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            logging.info("Response:", { author, id: postId, post, data: out, token });
+                            logging.info("Response:", { author, id: postId, post, data: out?.data });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
                             handleShowOriginalEvent(loading, out, post, postId, includeBody);
                         });
