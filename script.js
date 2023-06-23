@@ -454,6 +454,81 @@
     }
 
     /**
+     * Handle show original event given the post to show content for.
+     * @param {Element} linkEl The link element for showing the status.
+     * @param {object} out The response from the API.
+     * @param {object} post The archived data of the original comment/post.
+     * @param {string} postId The ID of the original comment/post.
+     * @param {Boolean} includeBody Whether or not to include the body of the original comment/post.
+     */
+    function handleShowOriginalEvent(linkEl, out, post, postId, includeBody) {
+        // locate comment body
+        const commentBodyElement = getPostBodyElement(postId);
+        // check that comment was fetched and body element exists
+        if (!commentBodyElement) {
+            // the comment body element was not found
+            linkEl.innerText = "body element not found";
+            linkEl.title = "Please report this issue to the developer on GitHub.";
+            logging.error("Body element not found:", out);
+        } else if (typeof post?.body === "string") {
+            // create new paragraph containing the body of the original comment
+            showOriginalComment(commentBodyElement, "comment", post, includeBody);
+            // remove loading status from comment
+            linkEl.innerText = "";
+            linkEl.removeAttribute("title");
+            logging.info("Successfully loaded comment.");
+        } else if (typeof post?.selftext === "string") {
+            // check if result has selftext instead of body (it is a submission post)
+            // create new paragraph containing the selftext of the original submission
+            showOriginalComment(commentBodyElement, "post", post, includeBody);
+            // remove loading status from post
+            linkEl.innerText = "";
+            linkEl.removeAttribute("title");
+            logging.info("Successfully loaded post.");
+        } else if (out?.data?.length === 0) {
+            // data was returned empty
+            linkEl.innerText = "not found";
+            linkEl.title = "No matching results were found in the Pushshift archive.";
+            logging.warn("No results:", out);
+        } else if (out?.data?.length > 0) {
+            // no matching comment/post was found in the data
+            linkEl.innerText = "not found";
+            linkEl.title = "The comment/post was not found in the Pushshift archive.";
+            logging.warn("No matching post:", out);
+        } else {
+            // other issue occurred with displaying comment
+            if (linkEl.innerText === "fetch failed") {
+                const errorLink = linkEl.parentElement.querySelector(".error-link");
+                const linkToPushshift = errorLink || document.createElement("a");
+                linkToPushshift.target = "_blank";
+                linkToPushshift.style = `text-decoration: underline;
+                                        cursor: pointer;
+                                        margin-left: 6px;
+                                        font-style: normal;
+                                        font-weight: bold;
+                                        color: #e5766e;`;
+                linkToPushshift.className = linkEl.className;
+                linkToPushshift.classList.add("error-link");
+                linkToPushshift.href = out?.detail
+                    ? "https://api.pushshift.io/signup"
+                    : "https://www.reddit.com/r/pushshift/";
+                linkToPushshift.innerText = out?.detail || "CHECK r/PUSHSHIFT FOR MORE INFO";
+                if (errorLink === null) {
+                    linkEl.parentElement.appendChild(linkToPushshift);
+                }
+                // unhide token container if token is missing or invalid
+                if (out?.detail) {
+                    const tokenContainer = document.querySelector("#tokenContainer");
+                    tokenContainer.style.display = "block";
+                }
+            }
+            linkEl.innerText = "fetch failed";
+            linkEl.title = "A Pushshift error occurred. Please check r/pushshift for updates.";
+            logging.error("Fetch failed:", out);
+        }
+    }
+
+    /**
      * Create a link to view the original comment/post.
      * @param {Element} innerEl An element inside the comment or post to create a link for.
      */
@@ -477,6 +552,7 @@
         // find id of selected comment or submission
         const postId = getPostId(showLinkEl);
         showLinkEl.alt = `View original post for ID ${postId}`;
+        showLinkEl.dataset.postId = postId;
         if (!postId) {
             showLinkEl.parentElement.removeChild(showLinkEl);
         }
@@ -555,73 +631,10 @@
                             if (loading.innerText === "") {
                                 return;
                             }
-                            // locate comment body
-                            const commentBodyElement = getPostBodyElement(postId);
                             const post = out?.data?.find((p) => p?.id === postId?.split("_").pop());
-                            logging.info("Response:", { author, id: postId, post, data: out?.data });
+                            logging.info("Response:", { author, id: postId, post, data: out, token });
                             const includeBody = !loading.classList.contains("showAuthorOnly");
-                            // check that comment was fetched and body element exists
-                            if (!commentBodyElement) {
-                                // the comment body element was not found
-                                loading.innerText = "body element not found";
-                                loading.title = "Please report this issue to the developer on GitHub.";
-                                logging.error("Body element not found:", out);
-                            } else if (typeof post?.body === "string") {
-                                // create new paragraph containing the body of the original comment
-                                showOriginalComment(commentBodyElement, "comment", post, includeBody);
-                                // remove loading status from comment
-                                loading.innerText = "";
-                                loading.removeAttribute("title");
-                                logging.info("Successfully loaded comment.");
-                            } else if (typeof post?.selftext === "string") {
-                                // check if result has selftext instead of body (it is a submission post)
-                                // create new paragraph containing the selftext of the original submission
-                                showOriginalComment(commentBodyElement, "post", post, includeBody);
-                                // remove loading status from post
-                                loading.innerText = "";
-                                loading.removeAttribute("title");
-                                logging.info("Successfully loaded post.");
-                            } else if (out?.data?.length === 0) {
-                                // data was returned empty
-                                loading.innerText = "not found";
-                                loading.title = "No matching results were found in the Pushshift archive.";
-                                logging.warn("No results:", out);
-                            } else if (out?.data?.length > 0) {
-                                // no matching comment/post was found in the data
-                                loading.innerText = "not found";
-                                loading.title = "The comment/post was not found in the Pushshift archive.";
-                                logging.warn("No matching post:", out);
-                            } else {
-                                // other issue occurred with displaying comment
-                                if (loading.innerText === "fetch failed") {
-                                    const errorLink = loading.parentElement.querySelector(".error-link");
-                                    const linkToPushshift = errorLink || document.createElement("a");
-                                    linkToPushshift.target = "_blank";
-                                    linkToPushshift.style = `text-decoration: underline;
-                                                            cursor: pointer;
-                                                            margin-left: 6px;
-                                                            font-style: normal;
-                                                            font-weight: bold;
-                                                            color: #e5766e;`;
-                                    linkToPushshift.className = loading.className;
-                                    linkToPushshift.classList.add("error-link");
-                                    linkToPushshift.href = out?.detail
-                                        ? "https://api.pushshift.io/signup"
-                                        : "https://www.reddit.com/r/pushshift/";
-                                    linkToPushshift.innerText = out?.detail || "CHECK r/PUSHSHIFT FOR MORE INFO";
-                                    if (errorLink === null) {
-                                        loading.parentElement.appendChild(linkToPushshift);
-                                    }
-                                    // unhide token container if token is missing or invalid
-                                    if (out?.detail) {
-                                        const tokenContainer = document.querySelector("#tokenContainer");
-                                        tokenContainer.style.display = "block";
-                                    }
-                                }
-                                loading.innerText = "fetch failed";
-                                loading.title = "A Pushshift error occurred. Please check r/pushshift for updates.";
-                                logging.error("Fetch failed:", out);
-                            }
+                            handleShowOriginalEvent(loading, out, post, postId, includeBody);
                         });
                     })
                     .catch(function (err) {
