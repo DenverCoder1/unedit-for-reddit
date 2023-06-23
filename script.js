@@ -537,7 +537,7 @@
      * @param {object} options The options to pass to fetch.
      * @returns {Promise} The fetch promise.
      */
-    function fetchAlt(url, options) {
+    function inlineFetch(url, options) {
         const outputContainer = document.createElement("div");
         outputContainer.id = "outputContainer" + Math.floor(Math.random() * Math.pow(10, 10));
         outputContainer.style.display = "none";
@@ -660,7 +660,7 @@
                 // request from pushshift api
                 await Promise.all(
                     URLs.map((url) =>
-                        fetchAlt(url, {
+                        fetch(url, {
                             method: "GET",
                             headers: {
                                 "Content-Type": "application/json",
@@ -930,7 +930,7 @@
         const [url, query] = window.location.href.split("?");
         const jsonUrl = `${url}.json` + (query ? `?${query}` : "");
         logging.info(`Fetching additional info from ${jsonUrl}`);
-        fetchAlt(jsonUrl, {
+        fetch(jsonUrl, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -1278,6 +1278,11 @@
         tokenContainer.appendChild(requestTokenLink);
         tokenContainer.appendChild(closeButton);
         document.body.appendChild(tokenContainer);
+
+        // switch from fetch to inlineFetch if browser is Firefox
+        if (navigator.userAgent.includes("Firefox")) {
+            fetch = inlineFetch;
+        }
     }
 
     // if the window is loaded, run init(), otherwise wait for it to load
