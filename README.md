@@ -76,6 +76,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.17.2
+
+-   Fixed an unsafe inline issue in Chrome from the previous version (not released on Chrome)
+
 ### Changes in 3.17.1
 
 -   Fixed issue with headers not being passed when using Firefox
