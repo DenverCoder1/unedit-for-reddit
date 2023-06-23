@@ -76,6 +76,12 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.17.1
+
+-   Fixed issue with headers not being passed when using Firefox
+-   Added explicit variable declaration that was previously implicit
+-   Minor refactoring
+
 ### Changes in 3.17.0
 
 -   Added support for Pushshift API token authentication
