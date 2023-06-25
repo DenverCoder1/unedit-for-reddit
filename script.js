@@ -168,28 +168,17 @@
          * @returns {Promise<string>} A promise that resolves with the value
          */
         get(key, defaultValue = null) {
-            // if the key exists in localStorage, migrate it to the storage API
-            if (typeof localStorage !== "undefined" && localStorage.getItem) {
-                const value = localStorage.getItem(key);
-                if (dataStorage._isStorageApiAvailable() && value !== null) {
-                    logging.info(`Migrating '${key}' from localStorage to browser storage API`);
-                    dataStorage.set(key, value).then(() => {
-                        localStorage.removeItem(key);
-                    });
-                    return Promise.resolve(value);
-                }
-            }
             // retrieve from storage API
             if (dataStorage._isBrowserStorageAvailable()) {
                 logging.info(`Retrieving '${key}' from browser.storage.local`);
                 return browser.storage.local.get(key).then((result) => {
-                    return result[key] || defaultValue;
+                    return result[key] || localStorage.getItem(key) || defaultValue;
                 });
             } else if (dataStorage._isChromeStorageAvailable()) {
                 logging.info(`Retrieving '${key}' from chrome.storage.local`);
                 return new Promise((resolve) => {
                     chrome.storage.local.get(key, (result) => {
-                        resolve(result[key] || defaultValue);
+                        resolve(result[key] || localStorage.getItem(key) || defaultValue);
                     });
                 });
             } else {
@@ -241,6 +230,14 @@
          */
         _isStorageApiAvailable() {
             return dataStorage._isBrowserStorageAvailable() || dataStorage._isChromeStorageAvailable();
+        },
+
+        /**
+         * Return whether localStorage is available
+         * @returns {boolean} Whether localStorage is available
+         */
+        _isLocalStorageAvailable() {
+            return typeof localStorage !== "undefined" && localStorage.getItem;
         },
     };
 
