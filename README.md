@@ -76,6 +76,10 @@ The following are known limitations that cannot be fixed:
 
 ## Changelog
 
+### Changes in 3.17.4
+
+-   Refactored storage interface to use `browser.storage.local` or `chrome.storage.local` if available
+
 ### Changes in 3.17.3
 
 -   Make inline fetch fix only apply to Firefox
