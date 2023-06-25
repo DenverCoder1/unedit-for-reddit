@@ -156,11 +156,11 @@
      *
      * Use the storage API or chrome.storage API if available, otherwise use localStorage.
      *
-     * dataStorage.get("key").then((value) => { ... });
-     * dataStorage.get("key", "default value").then((value) => { ... });
-     * dataStorage.set("key", "value").then(() => { ... });
+     * storage.get("key").then((value) => { ... });
+     * storage.get("key", "default value").then((value) => { ... });
+     * storage.set("key", "value").then(() => { ... });
      */
-    const dataStorage = {
+    const storage = {
         /**
          * Get a value from storage
          * @param {string} key - The key to retrieve
@@ -169,12 +169,12 @@
          */
         get(key, defaultValue = null) {
             // retrieve from storage API
-            if (dataStorage._isBrowserStorageAvailable()) {
+            if (storage._isBrowserStorageAvailable()) {
                 logging.info(`Retrieving '${key}' from browser.storage.local`);
                 return browser.storage.local.get(key).then((result) => {
                     return result[key] || localStorage.getItem(key) || defaultValue;
                 });
-            } else if (dataStorage._isChromeStorageAvailable()) {
+            } else if (storage._isChromeStorageAvailable()) {
                 logging.info(`Retrieving '${key}' from chrome.storage.local`);
                 return new Promise((resolve) => {
                     chrome.storage.local.get(key, (result) => {
@@ -194,10 +194,10 @@
          * @returns {Promise<void>} A promise that resolves when the value is set
          */
         set(key, value) {
-            if (dataStorage._isBrowserStorageAvailable()) {
+            if (storage._isBrowserStorageAvailable()) {
                 logging.info(`Storing '${key}' in browser.storage.local`);
                 return browser.storage.local.set({ [key]: value });
-            } else if (dataStorage._isChromeStorageAvailable()) {
+            } else if (storage._isChromeStorageAvailable()) {
                 logging.info(`Storing '${key}' in chrome.storage.local`);
                 return new Promise((resolve) => {
                     chrome.storage.local.set({ [key]: value }, resolve);
@@ -222,22 +222,6 @@
          */
         _isChromeStorageAvailable() {
             return typeof chrome !== "undefined" && chrome.storage;
-        },
-
-        /**
-         * Return whether storage is available (either browser.storage or chrome.storage)
-         * @returns {boolean} Whether storage is available
-         */
-        _isStorageApiAvailable() {
-            return dataStorage._isBrowserStorageAvailable() || dataStorage._isChromeStorageAvailable();
-        },
-
-        /**
-         * Return whether localStorage is available
-         * @returns {boolean} Whether localStorage is available
-         */
-        _isLocalStorageAvailable() {
-            return typeof localStorage !== "undefined" && localStorage.getItem;
         },
     };
 
@@ -610,7 +594,7 @@
                 if (out?.detail) {
                     const tokenContainer = document.querySelector("#tokenContainer");
                     tokenContainer.style.display = "block";
-                    dataStorage.set("hideTokenContainer", "false");
+                    storage.set("hideTokenContainer", "false");
                 }
             }
             linkEl.innerText = "fetch failed";
@@ -1334,7 +1318,7 @@
         tokenInput.id = "apiToken";
         tokenInput.placeholder = "Pushshift API Token";
         // if there is a token saved in local storage, use it
-        dataStorage.get("apiToken").then((token) => {
+        storage.get("apiToken").then((token) => {
             if (token) {
                 tokenInput.value = token;
             }
@@ -1350,7 +1334,7 @@
         saveButton.id = "saveButton";
         saveButton.addEventListener("click", function () {
             // save in local storage
-            dataStorage.set("apiToken", tokenInput.value);
+            storage.set("apiToken", tokenInput.value);
         });
         tokenInput.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
@@ -1370,10 +1354,10 @@
             // set the token container to display none
             tokenContainer.style.display = "none";
             // save preference in local storage
-            dataStorage.set("hideTokenContainer", "true");
+            storage.set("hideTokenContainer", "true");
         });
         // if the user has hidden the token container before, hide it again
-        dataStorage.get("hideTokenContainer").then((hideTokenContainer) => {
+        storage.get("hideTokenContainer").then((hideTokenContainer) => {
             if (hideTokenContainer === "true") {
                 tokenContainer.style.display = "none";
             }
