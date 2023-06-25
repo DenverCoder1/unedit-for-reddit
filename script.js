@@ -152,6 +152,92 @@
     };
 
     /**
+     * Storage methods for saving and retrieving data from local storage.
+     *
+     * Use the storage API or chrome.storage API if available, otherwise use localStorage.
+     *
+     * dataStorage.get("key").then((value) => { ... });
+     * dataStorage.get("key", "default value").then((value) => { ... });
+     * dataStorage.set("key", "value").then(() => { ... });
+     */
+    const dataStorage = {
+        /**
+         * Get a value from storage
+         * @param {string} key - The key to retrieve
+         * @param {string?} defaultValue - The default value to return if the key does not exist
+         * @returns {Promise<string>} A promise that resolves with the value
+         */
+        get(key, defaultValue = null) {
+            // if the key exists in localStorage, migrate it to the storage API
+            if (
+                (dataStorage.isBrowserStorageAvailable() || dataStorage.isChromeStorageAvailable()) &&
+                localStorage.getItem(key) !== null
+            ) {
+                logging.info(`Migrating '${key}' from localStorage to browser storage API`);
+                const value = localStorage.getItem(key);
+                dataStorage.set(key, value).then(() => {
+                    localStorage.removeItem(key);
+                });
+                return Promise.resolve(value);
+            }
+            // retrieve from storage API
+            if (dataStorage.isBrowserStorageAvailable()) {
+                logging.info(`Retrieving '${key}' from browser.storage.local`);
+                return browser.storage.local.get(key).then((result) => {
+                    return result[key] || defaultValue;
+                });
+            } else if (dataStorage.isChromeStorageAvailable()) {
+                logging.info(`Retrieving '${key}' from chrome.storage.local`);
+                return new Promise((resolve) => {
+                    chrome.storage.local.get(key, (result) => {
+                        resolve(result[key] || defaultValue);
+                    });
+                });
+            } else {
+                logging.info(`Retrieving '${key}' from localStorage`);
+                return Promise.resolve(localStorage.getItem(key) || defaultValue);
+            }
+        },
+
+        /**
+         * Set a value in storage
+         * @param {string} key - The key to set
+         * @param {string} value - The value to set
+         * @returns {Promise<void>} A promise that resolves when the value is set
+         */
+        set(key, value) {
+            if (dataStorage.isBrowserStorageAvailable()) {
+                logging.info(`Storing '${key}' in browser.storage.local`);
+                return browser.storage.local.set({ [key]: value });
+            } else if (dataStorage.isChromeStorageAvailable()) {
+                logging.info(`Storing '${key}' in chrome.storage.local`);
+                return new Promise((resolve) => {
+                    chrome.storage.local.set({ [key]: value }, resolve);
+                });
+            } else {
+                logging.info(`Storing '${key}' in localStorage`);
+                return Promise.resolve(localStorage.setItem(key, value));
+            }
+        },
+
+        /**
+         * Return whether browser.storage is available
+         * @returns {boolean} Whether browser.storage is available
+         */
+        isBrowserStorageAvailable() {
+            return typeof browser !== "undefined" && browser.storage;
+        },
+
+        /**
+         * Return whether chrome.storage is available
+         * @returns {boolean} Whether chrome.storage is available
+         */
+        isChromeStorageAvailable() {
+            return typeof chrome !== "undefined" && chrome.storage;
+        },
+    };
+
+    /**
      * Parse the URL for the submission ID and comment ID if it exists.
      * @returns {{submissionId: string|null, commentId: string|null}}
      */
@@ -520,7 +606,7 @@
                 if (out?.detail) {
                     const tokenContainer = document.querySelector("#tokenContainer");
                     tokenContainer.style.display = "block";
-                    localStorage.setItem("hideTokenContainer", "false");
+                    dataStorage.set("hideTokenContainer", "false");
                 }
             }
             linkEl.innerText = "fetch failed";
@@ -1244,9 +1330,11 @@
         tokenInput.id = "apiToken";
         tokenInput.placeholder = "Pushshift API Token";
         // if there is a token saved in local storage, use it
-        if (localStorage.getItem("apiToken")) {
-            tokenInput.value = localStorage.getItem("apiToken");
-        }
+        dataStorage.get("apiToken").then((token) => {
+            if (token) {
+                tokenInput.value = token;
+            }
+        });
         const requestTokenLink = document.createElement("a");
         requestTokenLink.href = "https://api.pushshift.io/signup";
         requestTokenLink.target = "_blank";
@@ -1258,7 +1346,7 @@
         saveButton.id = "saveButton";
         saveButton.addEventListener("click", function () {
             // save in local storage
-            localStorage.setItem("apiToken", tokenInput.value);
+            dataStorage.set("apiToken", tokenInput.value);
         });
         tokenInput.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
@@ -1278,12 +1366,14 @@
             // set the token container to display none
             tokenContainer.style.display = "none";
             // save preference in local storage
-            localStorage.setItem("hideTokenContainer", "true");
+            dataStorage.set("hideTokenContainer", "true");
         });
         // if the user has hidden the token container before, hide it again
-        if (localStorage.getItem("hideTokenContainer") === "true") {
-            tokenContainer.style.display = "none";
-        }
+        dataStorage.get("hideTokenContainer").then((hideTokenContainer) => {
+            if (hideTokenContainer === "true") {
+                tokenContainer.style.display = "none";
+            }
+        });
         document.body.appendChild(tokenContainer);
 
         // switch from fetch to inlineFetch if browser is Firefox
