@@ -169,10 +169,7 @@
          */
         get(key, defaultValue = null) {
             // if the key exists in localStorage, migrate it to the storage API
-            if (
-                (dataStorage.isBrowserStorageAvailable() || dataStorage.isChromeStorageAvailable()) &&
-                localStorage.getItem(key) !== null
-            ) {
+            if (dataStorage._isStorageApiAvailable() && localStorage.getItem(key) !== null) {
                 logging.info(`Migrating '${key}' from localStorage to browser storage API`);
                 const value = localStorage.getItem(key);
                 dataStorage.set(key, value).then(() => {
@@ -181,12 +178,12 @@
                 return Promise.resolve(value);
             }
             // retrieve from storage API
-            if (dataStorage.isBrowserStorageAvailable()) {
+            if (dataStorage._isBrowserStorageAvailable()) {
                 logging.info(`Retrieving '${key}' from browser.storage.local`);
                 return browser.storage.local.get(key).then((result) => {
                     return result[key] || defaultValue;
                 });
-            } else if (dataStorage.isChromeStorageAvailable()) {
+            } else if (dataStorage._isChromeStorageAvailable()) {
                 logging.info(`Retrieving '${key}' from chrome.storage.local`);
                 return new Promise((resolve) => {
                     chrome.storage.local.get(key, (result) => {
@@ -206,10 +203,10 @@
          * @returns {Promise<void>} A promise that resolves when the value is set
          */
         set(key, value) {
-            if (dataStorage.isBrowserStorageAvailable()) {
+            if (dataStorage._isBrowserStorageAvailable()) {
                 logging.info(`Storing '${key}' in browser.storage.local`);
                 return browser.storage.local.set({ [key]: value });
-            } else if (dataStorage.isChromeStorageAvailable()) {
+            } else if (dataStorage._isChromeStorageAvailable()) {
                 logging.info(`Storing '${key}' in chrome.storage.local`);
                 return new Promise((resolve) => {
                     chrome.storage.local.set({ [key]: value }, resolve);
@@ -224,7 +221,7 @@
          * Return whether browser.storage is available
          * @returns {boolean} Whether browser.storage is available
          */
-        isBrowserStorageAvailable() {
+        _isBrowserStorageAvailable() {
             return typeof browser !== "undefined" && browser.storage;
         },
 
@@ -232,8 +229,16 @@
          * Return whether chrome.storage is available
          * @returns {boolean} Whether chrome.storage is available
          */
-        isChromeStorageAvailable() {
+        _isChromeStorageAvailable() {
             return typeof chrome !== "undefined" && chrome.storage;
+        },
+
+        /**
+         * Return whether storage is available (either browser.storage or chrome.storage)
+         * @returns {boolean} Whether storage is available
+         */
+        _isStorageApiAvailable() {
+            return dataStorage._isBrowserStorageAvailable() || dataStorage._isChromeStorageAvailable();
         },
     };
 
