@@ -169,13 +169,17 @@
          */
         get(key, defaultValue = null) {
             // if the key exists in localStorage, migrate it to the storage API
-            if (dataStorage._isStorageApiAvailable() && localStorage.getItem(key) !== null) {
-                logging.info(`Migrating '${key}' from localStorage to browser storage API`);
-                const value = localStorage.getItem(key);
-                dataStorage.set(key, value).then(() => {
-                    localStorage.removeItem(key);
-                });
-                return Promise.resolve(value);
+            try {
+                if (dataStorage._isStorageApiAvailable() && localStorage.getItem(key) !== null) {
+                    logging.info(`Migrating '${key}' from localStorage to browser storage API`);
+                    const value = localStorage.getItem(key);
+                    dataStorage.set(key, value).then(() => {
+                        localStorage.removeItem(key);
+                    });
+                    return Promise.resolve(value);
+                }
+            } catch (e) {
+                logging.error("An error occurred while checking and migrating localStorage:", e);
             }
             // retrieve from storage API
             if (dataStorage._isBrowserStorageAvailable()) {
