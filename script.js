@@ -689,8 +689,13 @@
         // find id of selected comment or submission
         const postId = getPostId(showLinkEl);
         showLinkEl.alt = `View original post for ID ${postId}`;
+        showLinkEl.dataset.postId = postId;
         if (!postId) {
             showLinkEl.parentElement.removeChild(showLinkEl);
+        }
+        // if there are any links, add "Show All Original" link to the post if it doesn't exist
+        if (!document.querySelector(".showAllOriginal")) {
+            createShowAllOriginalLink();
         }
         // click event
         showLinkEl.addEventListener(
@@ -782,6 +787,39 @@
             },
             false
         );
+    }
+
+    /**
+     * Create "Show All Original" link
+     */
+    function createShowAllOriginalLink() {
+        const { submissionId } = parseURL();
+        let selector = `#t3_${submissionId} > div:first-of-type > div:nth-of-type(2) > div:first-of-type > div:first-of-type > span:first-of-type`;
+        if (isOldReddit) {
+            selector = `[data-url][class*="${submissionId}"] .entry .tagline > span:last-of-type`;
+        }
+        if (isCompact) {
+            selector = `[class*="${submissionId}"] > .entry > .tagline > *:last-child`;
+        }
+        const innerEl = document.querySelector(selector);
+        if (!submissionId || !innerEl) {
+            return;
+        }
+        // create link to "Show All Original"
+        const showLinkEl = document.createElement("a");
+        showLinkEl.innerText = "Show All Original";
+        showLinkEl.className = innerEl.className + " showAllOriginal";
+        showLinkEl.style.textDecoration = "underline";
+        showLinkEl.style.cursor = "pointer";
+        showLinkEl.style.marginLeft = "6px";
+        // add float right if in reddit redesign
+        if (!isCompact && !isOldReddit) {
+            showLinkEl.style.float = "right";
+        }
+        showLinkEl.title = "Click to show data for all visible edited or deleted posts or comments";
+        innerEl.parentElement.appendChild(showLinkEl);
+        // click event
+        showLinkEl.addEventListener("click", showAllOriginalContent, false);
     }
 
     /**
@@ -1044,11 +1082,95 @@
             });
     }
 
-    // check for new comments when you scroll
-    window.addEventListener("scroll", waitAndFindEditedComments, true);
-
-    // check for new comments when you click
-    document.body.addEventListener("click", waitAndFindEditedComments, true);
+    function showAllOriginalContent() {
+        const showAllLink = document.querySelector(".showAllOriginal");
+        if (showAllLink) {
+            showAllLink.innerText = "loading...";
+            showAllLink.title = "Loading all visible edited and deleted content...";
+        }
+        // get all post ids for show original links
+        const postIds = Array.from(document.querySelectorAll(".showOriginal[data-post-id]")).map(
+            (el) => el.dataset.postId
+        );
+        // get all comment ids for show original links
+        const commentIds = postIds.filter(function (postId, index) {
+            return postId.startsWith("t1_") && postIds.indexOf(postId) === index;
+        });
+        // get all submission ids for show original links
+        const submissionIds = postIds.filter(function (postId, index) {
+            return postId.startsWith("t3_") && postIds.indexOf(postId) === index;
+        });
+        // fetch data from pushshift api
+        const submissionsCommaSeparated = submissionIds.join(",");
+        const commentsCommaSeparated = commentIds.join(",");
+        const numberOfSubmissions = submissionIds.length;
+        const numberOfComments = commentIds.length;
+        let URLs = [];
+        if (numberOfSubmissions > 0) {
+            const submissionURL = `https://api.pushshift.io/reddit/search/submission/?ids=${submissionsCommaSeparated}&size=${numberOfSubmissions}&fields=selftext,author,id,created_utc,permalink`;
+            URLs.push(submissionURL);
+        }
+        if (numberOfComments > 0) {
+            const commentURL = `https://api.pushshift.io/reddit/search/comment/?ids=${commentsCommaSeparated}&size=${numberOfComments}&fields=body,author,id,link_id,created_utc,permalink`;
+            URLs.push(commentURL);
+        }
+        logging.info("Fetching original content from:", URLs);
+        Promise.all(
+            URLs.map(function (url) {
+                return fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "User-Agent": "Unedit and Undelete for Reddit",
+                    },
+                });
+            })
+        )
+            .then((responses) => {
+                return Promise.all(
+                    responses.map((response) => {
+                        if (!response.ok) {
+                            logging.error("Response not ok:", response);
+                            throw Error(response.statusText);
+                        }
+                        try {
+                            return response.json();
+                        } catch (e) {
+                            throw Error(`Invalid JSON Response: ${response}`);
+                        }
+                    })
+                );
+            })
+            .then(function (data) {
+                data.forEach((response) => {
+                    const out = response?.data || [];
+                    logging.info("Response:", { data: out?.data });
+                    out.forEach(function (post) {
+                        // find the show original links for this post
+                        const allLoading = document.querySelectorAll(`.showOriginal[data-post-id$="${post.id}"]`);
+                        const loading = allLoading[0];
+                        if (loading) {
+                            // if the post id is a comment, we need to add t1_ to the beginning, otherwise t3_
+                            const postId = commentsCommaSeparated.includes(post.id) ? `t1_${post.id}` : `t3_${post.id}`;
+                            handleShowOriginalEvent(loading, out, post, postId, true);
+                            // hide all links for this post
+                            allLoading.forEach((el) => (el.innerText = ""));
+                        }
+                    });
+                });
+                if (showAllLink) {
+                    showAllLink.innerText = "Show All Original";
+                    showAllLink.title = "Click to show data for all visible edited or deleted posts or comments";
+                }
+            })
+            .catch(function (error) {
+                logging.error("Error fetching original content", error);
+                if (showAllLink) {
+                    showAllLink.innerText = "fetch failed";
+                    showAllLink.title = "An error occurred while fetching original content";
+                }
+            });
+    }
 
     // add additional styling, find edited comments, and set old reddit status on page load
     function init() {
@@ -1062,6 +1184,16 @@
             "beforeend",
             `<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">`
         );
+        // check for new comments when you scroll
+        window.addEventListener("scroll", waitAndFindEditedComments, true);
+        // check for new comments when you click
+        document.body.addEventListener("click", waitAndFindEditedComments, true);
+        // show all original content when Ctrl+Alt+O is pressed
+        document.body.addEventListener("keydown", function (event) {
+            if (event.ctrlKey && event.altKey && event.key === "o") {
+                showAllOriginalContent();
+            }
+        });
         // Reddit redesign
         if (!isOldReddit) {
             // fix styling of created paragraphs in new reddit
