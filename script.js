@@ -732,7 +732,7 @@
 
                 if (!token) {
                     URLs.forEach((url, i) => {
-                        URLs[i] = url.replace(/^https:\/\/api\.pushshift\.io\//g, "https://api.pullpush.io/");
+                        URLs[i] = url.replace(/api\.pushshift\.io/, "api.pullpush.io");
                     });
                 }
 
