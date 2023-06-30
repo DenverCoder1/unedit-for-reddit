@@ -728,9 +728,15 @@
                 this.innerText = "loading...";
                 this.title = "Loading data from the original post or comment";
 
-                logging.info(`Fetching from ${URLs.join(" and ")}`);
-
                 const token = document.querySelector("#apiToken").value;
+
+                if (!token) {
+                    URLs.forEach((url, i) => {
+                        URLs[i] = url.replace(/^https:\/\/api\.pushshift\.io\//g, "https://api.pullpush.io/");
+                    });
+                }
+
+                logging.info(`Fetching from ${URLs.join(" and ")}`);
 
                 // request from pushshift api
                 await Promise.all(
