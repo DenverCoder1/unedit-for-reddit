@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Unedit and Undelete for Reddit
 // @namespace    http://tampermonkey.net/
-// @version      3.17.4
+// @version      3.18.0
 // @description  Creates the option next to edited and deleted Reddit comments/posts to show the original comment from before it was edited
 // @author       Jonah Lawrence (DenverCoder1)
 // @grant        none
@@ -36,7 +36,7 @@
      * The current version of the script
      * @type {string}
      */
-    const VERSION = "3.17.4";
+    const VERSION = "3.18.0";
 
     /**
      * Whether or not we are on old reddit and not redesign.
@@ -841,8 +841,8 @@
             elementsToCheck = Array.from(document.querySelectorAll(selectors.join(", ")));
             editedComments = elementsToCheck.filter(function (el) {
                 el.classList.add("found");
-                // we only care about the element if it has no children
-                if (el.children.length) {
+                // we only care about the element if it has no children (except for links)
+                if ([...el.children].filter((tag) => tag.tagName !== "A").length) {
                     return false;
                 }
                 // there are only specific phrases we care about in a P element
@@ -869,7 +869,8 @@
                     isUnavailable || // include unavailable comments (blocked by user)
                     el.innerText === "[ Removed by Reddit ]" || // include comments removed by Reddit
                     el.innerText === "That Comment Is Missing" || // include comments not found in comment tree
-                    el.innerText.substring(0, 29) === "Sorry, this post is no longer"; // include unavailable submissions (blocked by user)
+                    el.innerText.substring(0, 29) === "Sorry, this post is no longer" || // include unavailable submissions (blocked by user)
+                    el.innerText.substring(0, 47) === "Reddit administrators occasionally remove posts"; // include removed by Reddit submissions
                 const isDeletedAuthor = el.innerText === "[deleted]"; // include comments from deleted users
                 // if the element has a deleted author, make a link to only show the deleted author
                 if (isDeletedAuthor) {
